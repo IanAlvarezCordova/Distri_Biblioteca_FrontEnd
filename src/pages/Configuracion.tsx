@@ -153,6 +153,23 @@ const Configuracion: React.FC = () => {
     return rowData.roles.map((rol: Rol) => rol.nombre).join(', ');
   };
 
+  const ultimoAccesoBodyTemplate = (rowData: Usuario) => {
+    if (!rowData.ultimo_acceso) {
+      return <span className="text-gray-400">Nunca</span>;
+    }
+    
+    const fecha = new Date(rowData.ultimo_acceso);
+    const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    return <span className="text-gray-700">{fechaFormateada}</span>;
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6 mt-16">
       <Toast ref={toast} />
@@ -166,6 +183,7 @@ const Configuracion: React.FC = () => {
           <Column field="apellido" header="Apellido" />
           <Column field="email" header="Email" />
           <Column field="roles" header="Roles" body={rolesBodyTemplate} />
+          <Column field="ultimo_acceso" header="Último Acceso" body={ultimoAccesoBodyTemplate} />
           <Column body={actionBodyTemplate} header="Acciones" />
         </DataTable>
       </Card>

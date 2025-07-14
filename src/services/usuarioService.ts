@@ -33,6 +33,7 @@ export interface Usuario {
     apellido: string;
     email: string;
     username: string;
+    ultimo_acceso?: string;
     roles: { id: number; nombre: string }[];
 }
 
