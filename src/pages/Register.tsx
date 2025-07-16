@@ -27,13 +27,62 @@ const Register: React.FC = () => {
     else if (!/\S+@\S+\.\S+/.test(email))
       newErrors.email = 'El correo no es válido';
     if (!password) newErrors.password = 'La contraseña es obligatoria';
-    else if (password.length < 6)
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    else if (password.length < 5)
+      newErrors.password = 'La contraseña debe tener al menos 5 caracteres';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleRegister = async () => {
+    // Validaciones locales
+    if (!nombre || !apellido || !email || !password) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Por favor, completa todos los campos',
+        life: 3000,
+      });
+      return;
+    }
+    //verificar que solo tenga un unico nombre y apellido
+    if (nombre.split(' ').length > 1) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Solo se permite un único nombre',
+        life: 3000,
+      });
+      return;
+    }
+    if (apellido.split(' ').length > 1) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Solo se permite un único apellido',
+        life: 3000,
+      });
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'El correo no es válido',
+        life: 3000,
+      });
+      return;
+    }
+    if (password.length < 5) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'La contraseña debe tener al menos 5 caracteres',
+        life: 3000,
+      });
+      return;
+    }
+
     if (!validateForm()) return;
     try {
       await authService.register(nombre, apellido, email, password);
@@ -125,7 +174,7 @@ const Register: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                 toggleMask
-                feedback={false}
+                feedback={true}
                 inputClassName="border-0 w-100"
               />
               {errors.password && (

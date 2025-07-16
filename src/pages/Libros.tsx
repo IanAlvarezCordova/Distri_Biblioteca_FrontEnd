@@ -7,6 +7,7 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { Tooltip } from 'primereact/tooltip';
 import { libroService } from '../services/libroService';
 import { autorService } from '../services/autorService';
 import { categoriaService } from '../services/categoriaService';
@@ -98,7 +99,6 @@ const Libros: React.FC = () => {
         try {
             if (editMode && newLibro.id !== undefined) {
                 const updatedLibro = await libroService.update(newLibro.id, libroData);
-                // Actualizar el estado local inmediatamente
                 setLibros(prevLibros => 
                     prevLibros.map(libro => 
                         libro.id === newLibro.id ? {...updatedLibro, ...libroData, id: newLibro.id} : libro
@@ -107,15 +107,17 @@ const Libros: React.FC = () => {
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Libro actualizado', life: 3000 });
             } else {
                 const createdLibro = await libroService.create(libroData);
-                // Agregar el nuevo libro al estado local
                 setLibros(prevLibros => [...prevLibros, createdLibro]);
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Libro creado', life: 3000 });
             }
 
             setShowDialog(false);
             setNewLibro({ titulo: '', autor: null, categoria: null, disponible: true });
-        } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al guardar libro', life: 3000 });
+        } catch (error: any) {
+            const message = error.message.toLowerCase().includes('forbidden resource')
+                ? 'No tienes permisos para realizar esta acción.'
+                : error.message;
+            toast.current?.show({ severity: 'error', summary: 'Error', detail: message, life: 3000 });
         }
     };
 
@@ -139,28 +141,23 @@ const Libros: React.FC = () => {
             acceptClassName: 'p-button-danger',
             accept: async () => {
                 try {
-                    console.log('Eliminando libro con ID:', id);
                     await libroService.delete(id);
-                    
-                    // Actualizar el estado local inmediatamente sin recargar
-                    setLibros(prevLibros => {
-                        const nuevosLibros = prevLibros.filter(libro => libro.id !== id);
-                        console.log('Libros antes:', prevLibros.length, 'Libros después:', nuevosLibros.length);
-                        return nuevosLibros;
-                    });
-                    
+                    setLibros(prevLibros => prevLibros.filter(libro => libro.id !== id));
                     toast.current?.show({ 
                         severity: 'success', 
                         summary: 'Éxito', 
                         detail: 'Libro eliminado correctamente', 
                         life: 3000 
                     });
-                } catch (error) {
-                    console.error('Error al eliminar libro:', error);
+                } catch (error: any) {
+                    
+                    const message = error.message.toLowerCase().includes('forbidden resource')
+                        ? 'No tienes permisos para realizar esta acción.'
+                        : error.message;
                     toast.current?.show({ 
                         severity: 'error', 
                         summary: 'Error', 
-                        detail: 'Error al eliminar libro', 
+                        detail: message, 
                         life: 3000 
                     });
                 }
@@ -168,12 +165,47 @@ const Libros: React.FC = () => {
         });
     };
 
+    const actionBodyTemplate = (rowData: Libro) => (
+        <div className="flex gap-2">
+            <Button
+                icon="pi pi-pencil"
+                className="p-button-success p-button-sm"
+                onClick={() => handleEdit(rowData)}
+                data-pr-tooltip="Editar libro"
+            />
+            <Button
+                icon="pi pi-trash"
+                className="p-button-danger p-button-sm"
+                onClick={() => handleDelete(rowData.id)}
+                data-pr-tooltip="Eliminar libro"
+            />
+            <Tooltip target=".p-button-sm" />
+        </div>
+    );
+
+    const dialogFooter = (
+        <div className="flex justify-end gap-2">
+            <Button
+                label="Cancelar"
+                icon="pi pi-times"
+                className="p-button-text"
+                onClick={() => setShowDialog(false)}
+            />
+            <Button
+                label={editMode ? 'Actualizar' : 'Guardar'}
+                icon="pi pi-check"
+                className="p-button-success"
+                onClick={handleCreateOrUpdate}
+            />
+        </div>
+    );
+
     return (
-        <div className="p-4 md:p-6 space-y-6">
+        <div className="p-4 md:p-6 space-y-6 mt-16">
             <Toast ref={toast} />
             <ConfirmDialog />
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Gestión de Libros</h2>
+                <h2 className="text-2xl font-semibold text-gray-800">Gestión de Libros</h2>
                 <Button
                     label="Agregar Libro"
                     icon="pi pi-plus"
@@ -183,36 +215,23 @@ const Libros: React.FC = () => {
                         setNewLibro({ titulo: '', autor: null, categoria: null, disponible: true });
                         setShowDialog(true);
                     }}
+                    data-pr-tooltip="Crear nuevo libro"
                 />
+                <Tooltip target=".p-button-sm" />
             </div>
 
             <Card className="shadow-md">
                 <DataTable value={libros} responsiveLayout="scroll">
-                    <Column field="titulo" header="Título" />
-                    <Column field="autor.nombre" header="Autor" />
-                    <Column field="categoria.nombre" header="Categoría" />
+                    <Column field="titulo" header="Título" sortable filter filterMatchMode="contains" />
+                    <Column field="autor.nombre" header="Autor" sortable filter filterMatchMode="contains" />
+                    <Column field="categoria.nombre" header="Categoría" sortable filter filterMatchMode="contains" />
                     <Column
                         field="disponible"
                         header="Disponible"
                         body={(rowData: Libro) => (rowData.disponible ? 'Sí' : 'No')}
+                        sortable
                     />
-                    <Column
-                        header="Acciones"
-                        body={(rowData: Libro) => (
-                            <div className="flex gap-2">
-                                <Button
-                                    icon="pi pi-pencil"
-                                    className="p-button-warning p-button-sm"
-                                    onClick={() => handleEdit(rowData)}
-                                />
-                                <Button
-                                    icon="pi pi-trash"
-                                    className="p-button-danger p-button-sm"
-                                    onClick={() => handleDelete(rowData.id)}
-                                />
-                            </div>
-                        )}
-                    />
+                    <Column header="Acciones" body={actionBodyTemplate} />
                 </DataTable>
             </Card>
 
@@ -220,11 +239,12 @@ const Libros: React.FC = () => {
                 header={editMode ? 'Editar Libro' : 'Agregar Libro'}
                 visible={showDialog}
                 onHide={() => setShowDialog(false)}
-                className="w-full md:w-1/2"
+                style={{ width: '30rem' }}
+                footer={dialogFooter}
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="block mb-1 font-semibold">Título</label>
+                        <label className="block mb-1 font-semibold text-gray-700">Título</label>
                         <InputText
                             value={newLibro.titulo}
                             onChange={(e) => setNewLibro({ ...newLibro, titulo: e.target.value })}
@@ -233,7 +253,7 @@ const Libros: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block mb-1 font-semibold">Autor</label>
+                        <label className="block mb-1 font-semibold text-gray-700">Autor</label>
                         <Dropdown
                             value={newLibro.autor}
                             options={autores}
@@ -244,7 +264,7 @@ const Libros: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block mb-1 font-semibold">Categoría</label>
+                        <label className="block mb-1 font-semibold text-gray-700">Categoría</label>
                         <Dropdown
                             value={newLibro.categoria}
                             options={categorias}
@@ -254,12 +274,6 @@ const Libros: React.FC = () => {
                             className="w-full"
                         />
                     </div>
-                    <Button
-                        label={editMode ? 'Actualizar' : 'Guardar'}
-                        icon="pi pi-check"
-                        className="p-button-success w-full"
-                        onClick={handleCreateOrUpdate}
-                    />
                 </div>
             </Dialog>
         </div>

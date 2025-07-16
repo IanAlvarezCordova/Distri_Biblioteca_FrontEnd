@@ -1,5 +1,5 @@
 // src/services/libroService.ts
-const API_URL = "http://localhost:3000";
+import { fetchAPI } from './api';
 
 interface Libro {
     id: number;
@@ -17,62 +17,16 @@ interface DashboardStats {
     prestamosDevolucionesMensuales: { mes: string; prestamos: number; devoluciones: number }[];
 }
 
-const fetchAPI = async (url: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}${url}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-            ...(options.headers || {}),
-        },
-    });
-
-    if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-            throw new Error('No tienes permisos para realizar esta acción');
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en la solicitud');
-    }
-
-    if (response.status === 204) {
-        return;
-    }
-
-    return response.json();
-};
 
 export const libroService = {
-    findAll: async (): Promise<Libro[]> => {
-        return await fetchAPI('/libro');
-    },
-
-    findById: async (id: number): Promise<Libro> => {
-        return await fetchAPI(`/libro/${id}`);
-    },
-
-    create: async (data: Partial<Libro>): Promise<Libro> => {
-        return await fetchAPI('/libro', {
-            method: 'POST',
-            body: JSON.stringify(data),
-        });
-    },
-
-    update: async (id: number, data: Partial<Libro>): Promise<Libro> => {
-        return await fetchAPI(`/libro/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        });
-    },
-
-    delete: async (id: number): Promise<void> => {
-        await fetchAPI(`/libro/${id}`, {
-            method: 'DELETE',
-        });
-    },
-
-    getDashboardStats: async (): Promise<DashboardStats> => {
-        return await fetchAPI('/libro/dashboard');
-    },
+  findAll: async (): Promise<Libro[]> => fetchAPI('/libro'),
+  findById: async (id: number): Promise<Libro> => fetchAPI(`/libro/${id}`),
+  create: async (data: Partial<Libro>): Promise<Libro> =>
+    fetchAPI('/libro', { method: 'POST', body: JSON.stringify(data) }),
+  update: async (id: number, data: Partial<Libro>): Promise<Libro> =>
+    fetchAPI(`/libro/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: async (id: number): Promise<void> =>
+    fetchAPI(`/libro/${id}`, { method: 'DELETE' }),
+  getDashboardStats: async (): Promise<DashboardStats> =>
+    fetchAPI('/libro/dashboard'),
 };

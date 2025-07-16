@@ -1,44 +1,59 @@
 // src/services/autorService.ts
-const API_URL = "http://localhost:3000";
+import { fetchAPI } from './api';
 
 interface Autor {
     id: number;
     nombre: string;
 }
 
-const fetchAPI = async (url: string, options: RequestInit = {}) => {
+const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}${url}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-            ...(options.headers || {}),
-        },
-    });
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
-    if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
+const handleResponse = async (promise: Promise<any>) => {
+    try {
+        const response = await promise;
+        return response;
+    } catch (error: any) {
+        // Puedes personalizar el manejo de errores aquí
+        if (error.message?.includes('401') || error.message?.includes('403')) {
             throw new Error('No tienes permisos para realizar esta acción');
         }
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en la solicitud');
+        throw error;
     }
-
-    if (response.status === 204) return;
-    return response.json();
 };
 
 export const autorService = {
-    findAll: async (): Promise<Autor[]> => await fetchAPI('/autor'),
-    findById: async (id: number): Promise<Autor> => await fetchAPI(`/autor/${id}`),
-    create: async (data: Partial<Autor>): Promise<Autor> => await fetchAPI('/autor', {
-        method: 'POST',
-        body: JSON.stringify(data),
-    }),
-    update: async (id: number, data: Partial<Autor>): Promise<Autor> => await fetchAPI(`/autor/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-    }),
-    delete: async (id: number): Promise<void> => await fetchAPI(`/autor/${id}`, { method: 'DELETE' }),
+    findAll: async (): Promise<Autor[]> =>
+        handleResponse(fetchAPI('/autor', { headers: getAuthHeaders() })),
+
+    findById: async (id: number): Promise<Autor> =>
+        handleResponse(fetchAPI(`/autor/${id}`, { headers: getAuthHeaders() })),
+
+    create: async (data: Partial<Autor>): Promise<Autor> =>
+        handleResponse(fetchAPI('/autor', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders(),
+            },
+        })),
+
+    update: async (id: number, data: Partial<Autor>): Promise<Autor> =>
+        handleResponse(fetchAPI(`/autor/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders(),
+            },
+        })),
+
+    delete: async (id: number): Promise<void> =>
+        handleResponse(fetchAPI(`/autor/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        })),
 };

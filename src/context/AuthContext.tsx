@@ -2,18 +2,25 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 
+
+interface Rol {
+  id: number;
+  nombre: string;
+  [key: string]: any;
+}
+
 interface User {
-    id: number;
-    email: string;
-    roles: string[];
+  id: number;
+  email: string;
+  roles: Rol[]; // <-- Cambia aquí
 }
 
 interface AuthContextType {
-    isAuthenticated: boolean;
-    roles: string[];
-    user: User | null; // Añadir user
-    login: () => Promise<void>;
-    logout: () => void;
+  isAuthenticated: boolean;
+  roles: Rol[]; // <-- Cambia aquí
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Inicialización con debug
     const initialAuth = authService.isAuthenticated();
-    const initialRoles = authService.getRoles();
+    const initialRoles = authService.getRoles() as Rol[];
     const initialUser = authService.getUser();
     
     console.log('🚀 AuthProvider iniciando con:');
@@ -32,22 +39,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('  - user:', initialUser);
     
     const [isAuthenticated, setIsAuthenticated] = useState(initialAuth);
-    const [roles, setRoles] = useState<string[]>(initialRoles);
+    const [roles, setRoles] = useState<Rol[]>(initialRoles);
     const [user, setUser] = useState<User | null>(initialUser);
 
-    const login = () => {
-        console.log('🔐 Login ejecutado');
-        const newAuth = authService.isAuthenticated();
-        const newRoles = authService.getRoles();
-        const newUser = authService.getUser();
-        
-        console.log('  - nuevo isAuthenticated:', newAuth);
-        console.log('  - nuevos roles:', newRoles);
-        console.log('  - nuevo user:', newUser);
-        
-        setIsAuthenticated(newAuth);
-        setRoles(newRoles);
-        setUser(newUser);
+    const login = async (email: string, password: string) => {
+        console.log('🔐 Login ejecutado con:', { email, password });
+        // Llama al login real del servicio
+        const user = await authService.login(email, password);
+        setIsAuthenticated(true);
+        setRoles(user.roles || []);
+        setUser(user);
         
         // Forzar un re-render
         return Promise.resolve();
@@ -81,10 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const isAuth = authService.isAuthenticated();
             const userRoles = authService.getRoles();
             const currentUser = authService.getUser();
-            
-            console.log('  - isAuth inicial:', isAuth);
-            console.log('  - userRoles inicial:', userRoles);
-            console.log('  - currentUser inicial:', currentUser);
             
             // Solo actualizar si realmente hay cambios
             if (isAuth !== isAuthenticated) {

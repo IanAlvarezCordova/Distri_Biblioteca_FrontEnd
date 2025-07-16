@@ -2,40 +2,84 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Badge } from 'primereact/badge';
 import { OverlayPanel } from 'primereact/overlaypanel';
+import { useAuth } from '../context/AuthContext';
+import { prestamoService, Prestamo } from '../services/prestamoService';
+import { devolucionService } from '../services/devolucionService';
 
 interface Notification {
-    id: number;
+    id: string; // Puede ser string para evitar colisiones
     mensaje: string;
     fecha: string;
 }
 
-interface Props {
-    count: number;
-    onClick?: (event: React.MouseEvent<HTMLElement>) => void;
-}
-
-const NotificationBell: React.FC<Props> = ({ count, onClick }) => {
+const NotificationBell: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [notificacionesLeidas, setNotificacionesLeidas] = useState(false);
     const op = useRef<OverlayPanel>(null);
+    const { user } = useAuth();
 
     useEffect(() => {
-        setNotifications([
-            { id: 1, mensaje: 'Préstamo vencido: Cien Años de Soledad', fecha: '2025-06-01' },
-            { id: 2, mensaje: 'Nuevo usuario registrado', fecha: '2025-06-02' },
-        ]);
-    }, []);
+        const fetchNotifications = async () => {
+            if (user) {
+                try {
+                    // Préstamos pendientes
+                    const prestamos: Prestamo[] = await prestamoService.findByUsuarioId(user.id);
+                    const hoy = new Date();
+                    const prestamosNotifs = prestamos
+                        .filter(p => !p.devuelto && p.fecha_devolucion)
+                        .filter(p => {
+                            const fechaDev = new Date(p.fecha_devolucion as string);
+                            const diff = (fechaDev.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
+                            return diff <= 3;
+                        })
+                        .map(p => ({
+                            id: `prestamo-${p.id}`,
+                            mensaje:
+                                new Date(p.fecha_devolucion as string) < hoy
+                                    ? `¡Préstamo vencido! Libro: ${p.libro.titulo}`
+                                    : `Pronto vence el préstamo: ${p.libro.titulo}`,
+                            fecha: p.fecha_devolucion as string,
+                        }));
+
+                    // Última devolución
+                    const devoluciones = await devolucionService.findAll();
+                    const misDevoluciones = devoluciones
+                        .filter((d: any) => d.usuario.id === user.id)
+                        .sort((a: any, b: any) => new Date(b.fecha_devolucion).getTime() - new Date(a.fecha_devolucion).getTime());
+                    const ultimaDevolucion = misDevoluciones[0];
+                    let devolucionNotif: Notification[] = [];
+                    if (ultimaDevolucion) {
+                        devolucionNotif = [{
+                            id: `devolucion-${ultimaDevolucion.id}`,
+                            mensaje: `Has devuelto el libro: ${ultimaDevolucion.libro.titulo}`,
+                            fecha: ultimaDevolucion.fecha_devolucion,
+                        }];
+                    }
+
+                    setNotifications([...devolucionNotif, ...prestamosNotifs]);
+                    setNotificacionesLeidas(false); // Cada vez que hay nuevas, vuelve a mostrar el contador
+                } catch {
+                    setNotifications([]);
+                }
+            }
+        };
+        fetchNotifications();
+    }, [user]);
+
+    // Al abrir la campanita, marca como leídas
+    const handleBellClick = (e: React.MouseEvent) => {
+        op.current?.toggle(e);
+        setNotificacionesLeidas(true);
+    };
 
     return (
         <div className="relative">
             <i
                 className="pi pi-bell text-2xl cursor-pointer"
-                onClick={(e) => {
-                    op.current?.toggle(e);
-                    onClick?.(e); // Llamamos al onClick externo si existe
-                }}
+                onClick={handleBellClick}
             >
-                {count > 0 && (
-                    <Badge value={count} severity="danger" className="absolute top-0 right-0" />
+                {notifications.length > 0 && !notificacionesLeidas && (
+                    <Badge value={notifications.length} severity="danger" className="absolute top-0 right-0" />
                 )}
             </i>
             <OverlayPanel ref={op} className="w-64">
@@ -47,7 +91,7 @@ const NotificationBell: React.FC<Props> = ({ count, onClick }) => {
                         notifications.map((notif) => (
                             <div key={notif.id} className="p-2 border-b">
                                 <p className="text-sm">{notif.mensaje}</p>
-                                <p className="text-xs text-gray-500">{notif.fecha}</p>
+                                <p className="text-xs text-gray-500">{new Date(notif.fecha).toLocaleDateString()}</p>
                             </div>
                         ))
                     )}

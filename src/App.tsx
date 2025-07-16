@@ -19,6 +19,8 @@ import Register from './pages/Register';
 
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
+import AdminRoute from './routes/AdminRoute';
+import { GestionUsuarios } from './pages/GestionUsuarios';
 
 const App: React.FC = () => {
   return (
@@ -32,12 +34,8 @@ const App: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, roles } = useAuth();
-  const isAdmin = roles.includes('administrador');
-
-  console.log('🔍 AppContent - Estado de autenticación:');
-  console.log('  - isAuthenticated:', isAuthenticated);
-  console.log('  - roles:', roles);
-  console.log('  - isAdmin:', isAdmin);
+  const isAdmin = roles.some((rol: any) => rol.nombre === 'administrador');
+  
 
   return (
     <>
@@ -84,7 +82,10 @@ const AuthenticatedApp: React.FC<{ isAdmin: boolean }> = ({ isAdmin }) => {
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/autores" element={<Autores />} />
             <Route path="/categorias" element={<Categorias />} />
-            {isAdmin && <Route path="/configuracion" element={<Configuracion />} />}
+            <Route element={<AdminRoute />}>
+              <Route path="/configuracion" element={<Configuracion />} />
+              {/* <Route path="/gestion-usuarios" element={<GestionUsuarios />} /> */}
+            </Route>
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Routes>
         </main>

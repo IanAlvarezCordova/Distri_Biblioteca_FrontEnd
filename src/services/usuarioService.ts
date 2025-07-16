@@ -1,31 +1,5 @@
 // src/services/usuarioService.ts
-const API_URL = "http://localhost:3000";
-
-const fetchAPI = async (url: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}${url}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-            ...(options.headers || {}),
-        },
-    });
-
-    if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-            throw new Error('No tienes permisos para realizar esta acción');
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error en la solicitud');
-    }
-    // Si la respuesta es 204 No Content, no intentamos parsear JSON
-    if (response.status === 204) {
-        return; // Devolvemos undefined para indicar que no hay cuerpo
-    }
-
-    return response.json();
-};
+import { fetchAPI } from './api';
 
 export interface Usuario {
     id: number;
@@ -35,49 +9,34 @@ export interface Usuario {
     username: string;
     ultimo_acceso?: string;
     roles: { id: number; nombre: string }[];
+    password?: string; // Agregar para soportar actualización
+    currentPassword?: string; // Agregar para soportar validación
 }
 
 export interface Rol {
-    id: number;
-    nombre: string;
+  id: number;
+  nombre: string;
 }
 
 export const usuarioService = {
-    findAll: async (): Promise<Usuario[]> => {
-        return await fetchAPI('/usuario');
-    },
-
-    findById: async (id: number): Promise<Usuario> => {
-        return await fetchAPI(`/usuario/${id}`);
-    },
-
-    update: async (id: number, data: Partial<Usuario>): Promise<Usuario> => {
-        const { nombre, apellido, email } = data;
-        return await fetchAPI(`/usuario/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ nombre, apellido, email }),
-        });
-    },
-
-    asignarRol: async (idUsuario: number, idRol: number): Promise<Usuario> => {
-        return await fetchAPI(`/usuario/${idUsuario}/roles/${idRol}`, {
-            method: 'POST',
-        });
-    },
-
-    removerRol: async (idUsuario: number, idRol: number): Promise<Usuario> => {
-        return await fetchAPI(`/usuario/${idUsuario}/roles/${idRol}`, {
-            method: 'DELETE',
-        });
-    },
-
-    delete: async (id: number): Promise<void> => {
-        await fetchAPI(`/usuario/${id}`, {
-            method: 'DELETE',
-        });
-    },
-
-    getRoles: async (): Promise<Rol[]> => {
-        return await fetchAPI('/rol');
-    },
+  findAll: async (): Promise<Usuario[]> => fetchAPI('/usuario'),
+  findById: async (id: number): Promise<Usuario> => fetchAPI(`/usuario/${id}`),
+  update: async (id: number, data: Partial<Usuario> & { currentPassword?: string }): Promise<Usuario> =>
+    fetchAPI(`/usuario/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            nombre: data.nombre,
+            apellido: data.apellido,
+            email: data.email,
+            password: data.password,
+            currentPassword: data.currentPassword,
+        }),
+    }),
+  asignarRol: async (idUsuario: number, idRol: number): Promise<Usuario> =>
+    fetchAPI(`/usuario/${idUsuario}/roles/${idRol}`, { method: 'POST' }),
+  removerRol: async (idUsuario: number, idRol: number): Promise<Usuario> =>
+    fetchAPI(`/usuario/${idUsuario}/roles/${idRol}`, { method: 'DELETE' }),
+  delete: async (id: number): Promise<void> =>
+    fetchAPI(`/usuario/${id}`, { method: 'DELETE' }),
+  getRoles: async (): Promise<Rol[]> => fetchAPI('/rol'),
 };

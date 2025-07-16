@@ -7,8 +7,8 @@ body {
   font-family: 'Inter', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc; /* Fondo blanco claro */
-  color: #333; /* Texto oscuro para contraste */
+  background-color: #f8fafc;
+  color: #333;
 }
 
 /* Animaciones */
@@ -23,67 +23,10 @@ body {
   }
 }
 
-@keyframes fade-in-delayed {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes text-reveal {
+@keyframes fade-in-up {
   0% {
     opacity: 0;
-    transform: translateX(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes slideInLeft {
-  0% {
-      opacity: 0;
-      transform: translateX(-50px);
-  }
-  100% {
-      opacity: 1;
-      transform: translateX(0);
-  }
-}
-
-@keyframes slideInRight {
-  0% {
-      opacity: 0;
-      transform: translateX(50px);
-  }
-  100% {
-      opacity: 1;
-      transform: translateX(0);
-  }
-}
-
-/* Nuevas animaciones para el login mejorado */
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
   100% {
     opacity: 1;
@@ -91,7 +34,7 @@ body {
   }
 }
 
-@keyframes scaleIn {
+@keyframes scale-in {
   0% {
     opacity: 0;
     transform: scale(0.95);
@@ -112,35 +55,15 @@ body {
 }
 
 .animate-fade-in {
-  animation: fade-in 1s ease-in-out;
-}
-
-.animate-fade-in-delayed {
-  animation: fade-in-delayed 1.2s ease-in-out;
-}
-
-.animate-text-reveal {
-  animation: text-reveal 0.8s ease-in-out;
-}
-
-.animate-pulse {
-  animation: pulse 2s infinite;
-}
-
-.animate-slide-in-left {
-  animation: slideInLeft 1s ease-out forwards;
-}
-
-.animate-slide-in-right {
-  animation: slideInRight 1s ease-out forwards;
+  animation: fade-in 0.8s ease-in-out;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out forwards;
+  animation: fade-in-up 0.6s ease-out forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.6s ease-out forwards;
+  animation: scale-in 0.6s ease-out forwards;
 }
 
 .animate-float {
@@ -148,25 +71,26 @@ body {
 }
 
 /* PrimeReact and custom styles */
-
 .p-card {
-  background-color: #ffffff; /* Asegurar que las tarjetas sean blancas */
-  border-radius: 8px; /* Bordes redondeados para elegancia */
-  transition: all 0.3s ease;
+  background-color: #ffffff;
+  border-radius: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .p-card:hover {
   transform: translateY(-2px);
-
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .p-datatable .p-datatable-thead > tr > th {
-  background-color: #f1f5f9; /* Encabezados de tablas claros */
+  background-color: #f1f5f9;
+  font-weight: 600;
 }
 
 .p-dialog {
-  background-color: #ffffff; /* Diálogos blancos */
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .p-button:not(:disabled):hover {
@@ -175,10 +99,44 @@ body {
 }
 
 /* Glassmorphism effect */
-.glass-effect {
-  backdrop-filter: blur(10px);
+.glass-card {
   background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+}
+
+/* Input styles */
+.p-inputtext,
+.p-password input {
+  background-color: white !important;
+  color: #000 !important;
+  border-color: rgb(251, 146, 60) !important;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+}
+
+.p-inputtext:hover,
+.p-password .p-inputtext:hover {
+  border-color: rgb(234, 88, 12) !important;
+}
+
+.p-inputtext:focus,
+.p-password .p-inputtext:focus {
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1) !important;
+  border-color: rgb(251, 146, 60) !important;
+}
+
+.p-inputtext.p-invalid,
+.p-password .p-inputtext.p-invalid {
+  border-color: rgb(239, 68, 68) !important;
+  background-color: rgba(254, 242, 242, 0.5) !important;
+}
+
+/* Responsive dialog container */
+.dialog-container {
+  width: clamp(20rem, 90vw, 30rem);
 }
 
 /* Eliminar colores de autocompletado del navegador */
@@ -188,92 +146,4 @@ input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px white inset !important;
   -webkit-text-fill-color: #000 !important;
-}
-
-/* Estilos para campos de PrimeReact */
-.p-inputtext,
-.p-password input {
-  background-color: white !important;
-  color: #000 !important;
-}
-
-/* Eliminar colores de fondo en campos de contraseña */
-.p-password .p-inputtext {
-  background-color: white !important;
-}
-
-/* Estilos mejorados para formularios de login/register */
-.glass-container {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Animación mejorada para iconos flotantes */
-@keyframes float-enhanced {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-5px) rotate(1deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(0deg);
-  }
-  75% {
-    transform: translateY(-5px) rotate(-1deg);
-
-  }
-}
-
-.animate-float {
-  animation: float-enhanced 4s ease-in-out infinite;
-}
-
-/* Efectos hover para botones */
-.btn-gradient-hover {
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
-  background-size: 200% 100%;
-  transition: all 0.3s ease;
-}
-
-.btn-gradient-hover:hover {
-  background-position: 100% 0;
-}
-
-/* Inputs con efectos focus mejorados - colores naranja */
-.p-inputtext:focus,
-.p-password .p-inputtext:focus {
-  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1) !important;
-  border-color: rgb(251, 146, 60) !important;
-  transform: translateY(-1px);
-}
-
-/* Inputs normales con borde naranja */
-.p-inputtext,
-.p-password .p-inputtext {
-  border-color: rgb(251, 146, 60) !important;
-  transition: all 0.2s ease;
-}
-
-/* Hover effect para inputs */
-.p-inputtext:hover,
-.p-password .p-inputtext:hover {
-  border-color: rgb(234, 88, 12) !important;
-}
-
-/* Estilos específicos para campos con errores */
-.p-inputtext.p-invalid,
-.p-password .p-inputtext.p-invalid {
-  border-color: rgb(239, 68, 68) !important;
-  background-color: rgba(254, 242, 242, 0.5) !important;
-}
-
-/* Efectos de glassmorphism para tarjetas */
-.glass-card {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
 }

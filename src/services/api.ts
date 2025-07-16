@@ -1,8 +1,29 @@
-//src/services/api.ts
-// En desarrollo usar el proxy, en producción usar la URL completa
-const API_URL = import.meta.env.PROD ? "http://localhost:3000" : "/api";
+// src/services/api.ts
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Utilidad para convertir cualquier tipo de headers a objeto plano
+function normalizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) return {};
+  if (headers instanceof Headers) {
+    const result: Record<string, string> = {};
+    headers.forEach((value, key) => { result[key] = value; });
+    return result;
+  }
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
+  }
+  return headers as Record<string, string>;
+}
 
 export const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
+  const token = localStorage.getItem('token');
+  const baseHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  const extraHeaders = normalizeHeaders(options.headers);
+  const headers = { ...baseHeaders, ...extraHeaders };
+
   console.log('🔗 fetchAPI llamado con:', {
     url: `${API_URL}${endpoint}`,
     method: options.method || 'GET',
@@ -11,57 +32,59 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
-      method: options.method || 'GET',
-      mode: 'cors', // Explícitamente habilitar CORS
-      cache: 'no-cache', // Deshabilitar cache
-      credentials: 'omit', // No enviar cookies por defecto
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
     });
 
-    console.log('📡 Respuesta recibida:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      url: response.url
-    });
-
+    // --- Manejo de errores por status ---
     if (!response.ok) {
       let errorMessage = `Error en la petición: ${response.statusText}`;
+      let errorData: any = {};
+
       try {
-        const errorData = await response.json();
-        console.log('❌ Error data del servidor:', errorData);
-        errorMessage = errorData.message || errorMessage;
+        errorData = await response.json();
       } catch {
         // Si no puede parsear JSON, usa el mensaje por defecto
-        console.log('❌ No se pudo parsear el error como JSON');
       }
+      // Priorizar el mensaje del backend si está disponible
+      if (errorData.message) {
+        throw new Error(errorData.message);
+      }
+
+      if (response.status === 401) {
+        // Combinar los 2 mensajes del backend y el mensaje por defecto
+        throw new Error(`No autorizado, server: ${errorData.message || ''}`.trim());
+      }
+      if (response.status === 403) {
+        // Combinar los 2 mensajes del backend y el mensaje por defecto
+        throw new Error( `No tienes permisos para realizar esta acción, server: ${errorData.message || ''}`.trim());
+      }
+
+      // No encontrado
+      if (response.status === 404) {
+        throw new Error('No encontrado');
+      }
+      // Otros errores
       throw new Error(errorMessage);
     }
 
-    // 🛠️ Verifica si hay contenido antes de hacer response.json()
+    // --- Manejo de respuestas vacías (204 No Content) ---
+    if (response.status === 204) {
+      return;
+    }
+
+    // --- Manejo de respuesta exitosa (201 Created, 200 OK, etc) ---
+    // Si la respuesta está vacía, retorna null
     const text = await response.text();
-    console.log('📄 Respuesta text length:', text.length);
-    const result = text ? JSON.parse(text) : null;
-    console.log('✅ Resultado parseado:', result);
-    return result;
+    return text ? JSON.parse(text) : null;
   } catch (error) {
-    console.error('🚨 Error completo en fetchAPI:', error);
-    
-    // Type guard para error
+    // Error de red o fetch
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorName = error instanceof Error ? error.constructor.name : 'Unknown';
-    
-    console.error('🚨 Tipo de error:', errorName);
-    console.error('🚨 Mensaje de error:', errorMessage);
-    
-    // Si es un error de red (backend no disponible)
-    if (error instanceof TypeError && (errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch'))) {
-      throw new Error('❌ Backend no disponible. Asegúrate de que el servidor esté corriendo en http://localhost:3000');
+    if (
+      error instanceof TypeError &&
+      (errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch'))
+    ) {
+      throw new Error('Backend no disponible. Asegúrate de que el servidor esté corriendo.');
     }
     throw error;
   }

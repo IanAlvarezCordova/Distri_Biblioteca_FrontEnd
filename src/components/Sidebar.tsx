@@ -9,8 +9,8 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const { roles, logout } = useAuth();
   const { collapsed, toggleSidebar } = useSidebar();
-
-  const isAdmin = roles.includes('administrador');
+  console.log('Roles en Sidebar:', roles); // Añade esta línea
+  const isAdmin = roles.some((rol: any) => rol.nombre === 'administrador');
 
   const menuItems = [
     { label: 'Dashboard', icon: 'pi pi-chart-bar', to: '/dashboard' },
@@ -19,8 +19,10 @@ const Sidebar: React.FC = () => {
     { label: 'Devoluciones', icon: 'pi pi-arrow-left', to: '/devoluciones' },
     { label: 'Autores', icon: 'pi pi-users', to: '/autores' },
     { label: 'Categorías', icon: 'pi pi-tags', to: '/categorias' },
-    { label: 'Gestión de Usuarios', icon: 'pi pi-user-edit', to: '/configuracion', adminOnly: true },
-    { label: 'Perfil', icon: 'pi pi-user', to: '/perfil' },
+    //si tiene entre sus roles, el rol de administrador, muestra el item de configuración
+   //{ label: 'Gestión de Usuarios', icon: 'pi pi-users', to: '/gestion-usuarios', adminOnly: true },
+    { label: 'Gestión de Usuarios', icon: 'pi pi-users', to: '/configuracion', adminOnly: true },
+   { label: 'Perfil', icon: 'pi pi-user', to: '/perfil' },
     { label: 'Cerrar Sesión', icon: 'pi pi-sign-out', to: '/', className: 'text-red-500', command: () => logout() },
   ];
 

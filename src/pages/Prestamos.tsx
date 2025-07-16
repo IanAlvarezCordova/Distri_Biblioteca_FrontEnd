@@ -9,6 +9,7 @@ import { prestamoService } from '../services/prestamoService';
 import { libroService } from '../services/libroService';
 import { usuarioService } from '../services/usuarioService';
 import { Card } from 'primereact/card';
+import { useAuth } from '../context/AuthContext';
 
 interface Prestamo {
     id: number;
@@ -33,17 +34,16 @@ interface Usuario {
 
 const Prestamos: React.FC = () => {
     const toast = useRef<Toast>(null);
+    const { user, roles } = useAuth?.() ?? {};
     const [prestamos, setPrestamos] = useState<Prestamo[]>([]);
     const [libros, setLibros] = useState<Libro[]>([]);
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [showDialog, setShowDialog] = useState(false);
-    const [newPrestamo, setNewPrestamo] = useState<{
-        libro: Libro | null;
-        usuario: Usuario | null;
-    }>({
+    const [newPrestamo, setNewPrestamo] = useState<{ libro: Libro | null }>({
         libro: null,
-        usuario: null,
     });
+
+    const isAdmin = roles?.some((rol: any) => rol.nombre === 'administrador');
 
     const fetchData = async () => {
         try {
@@ -65,8 +65,8 @@ const Prestamos: React.FC = () => {
     }, []);
 
     const handleCreatePrestamo = async () => {
-        if (!newPrestamo.libro || !newPrestamo.usuario) {
-            toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Debe seleccionar un libro y un usuario', life: 3000 });
+        if (!newPrestamo.libro) {
+            toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Debe seleccionar un libro', life: 3000 });
             return;
         }
 
@@ -74,22 +74,20 @@ const Prestamos: React.FC = () => {
             const today = new Date();
             await prestamoService.create({
                 libro: { id: newPrestamo.libro.id },
-                usuario: { id: newPrestamo.usuario.id },
                 fecha_prestamo: today,
                 devuelto: false,
             });
-            
 
-            await libroService.update(newPrestamo.libro.id, { disponible: false });
-
+            // NO actualizar libro desde el frontend, el backend lo hace
             toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Préstamo registrado', life: 3000 });
             setShowDialog(false);
-            setNewPrestamo({ libro: null, usuario: null });
+            setNewPrestamo({ libro: null });
             fetchData();
-        } catch (error) {
-            
-            
-            toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al registrar préstamo', life: 3000 });
+        } catch (error: any) {
+            const message = error.message.toLowerCase().includes('forbidden resource')
+                ? 'No tienes permisos para realizar esta acción.'
+                : error.message;
+            toast.current?.show({ severity: 'error', summary: 'Error', detail: message, life: 3000 });
         }
     };
 
@@ -137,33 +135,31 @@ const Prestamos: React.FC = () => {
                             value={newPrestamo.libro}
                             options={libros}
                             optionLabel="titulo"
-                            onChange={(e) => setNewPrestamo({ ...newPrestamo, libro: e.value })}
+                            onChange={(e) => setNewPrestamo({ libro: e.value })}
                             placeholder="Selecciona un libro"
                             className="w-full"
                         />
                     </div>
-                    <div>
-                        <label className="block mb-1 font-semibold">Usuario</label>
-                        <Dropdown
-    value={newPrestamo.usuario}
-    options={usuarios}
-    optionLabel="nombre"
-    onChange={(e) => setNewPrestamo({ ...newPrestamo, usuario: e.value })}
-    placeholder="Selecciona un usuario"
-    className="w-full"
-    itemTemplate={(option) => (
-        <div>{option.nombre} {option.apellido}</div>
-    )}
-/>
-
-                    </div>
+                    {/* Solo los admin pueden seleccionar usuario */}
+                    {isAdmin && (
+                        <div>
+                            <label className="block mb-1 font-semibold">Usuario</label>
+                            <Dropdown
+                                value={null}
+                                options={usuarios}
+                                optionLabel="nombre"
+                                disabled
+                                placeholder="Solo admin puede seleccionar usuario"
+                                className="w-full"
+                            />
+                        </div>
+                    )}
                     <Button
-    label="Registrar"
-    icon="pi pi-check"
-    className="p-button-success w-full"
-    onClick={handleCreatePrestamo}
-/>
-
+                        label="Registrar"
+                        icon="pi pi-check"
+                        className="p-button-success w-full"
+                        onClick={handleCreatePrestamo}
+                    />
                 </div>
             </Dialog>
         </div>

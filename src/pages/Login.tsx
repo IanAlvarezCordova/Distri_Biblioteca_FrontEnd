@@ -1,10 +1,9 @@
 // src/pages/Login.tsx
 import React, { useState, useRef } from 'react';
 import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { useNavigate, Link } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { Password } from 'primereact/password';
 import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
@@ -15,15 +14,54 @@ const Login: React.FC = () => {
   const { login } = useAuth();
 
   const handleLogin = async () => {
+    // Validaciones locales
+    if (!email || !password) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Por favor, completa todos los campos',
+        life: 3000,
+      });
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'El correo no es válido',
+        life: 3000,
+      });
+      return;
+    }
+    //contraseña mínima 5
+    if (password.length < 5) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'La contraseña debe tener al menos 5 caracteres',
+        life: 3000,
+      });
+      return;
+    }
+
     try {
-      const user = await authService.login(email, password);
-      login();
+      await login(email, password);
       navigate('/dashboard');
     } catch (error: any) {
+      // Depurar el mensaje de error
+      console.log('Error recibido:', error.message);
+
+      const message = error.message.toLowerCase().includes('el email no esta registrado')
+        ? 'El correo no está registrado'
+        : error.message.toLowerCase().includes('la contraseña es incorrecta')
+        ? 'La contraseña es incorrecta'
+        : error.message.toLowerCase().includes('permisos')
+        ? 'No tienes permisos para realizar esta acción'
+        : 'Error al iniciar sesión. Por favor, intenta de nuevo.';
       toast.current?.show({
         severity: 'error',
         summary: 'Error',
-        detail: error.message || 'Credenciales incorrectas',
+        detail: message,
         life: 3000,
       });
     }
@@ -56,11 +94,13 @@ const Login: React.FC = () => {
               <span className="input-group-text">
                 <i className="bi bi-lock-fill"></i>
               </span>
-              <InputText
+              <Password
+                feedback={false}
                 value={password}
+                toggleMask
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Contraseña"
-                type="password"
+                inputClassName="border-0 w-100"
                 className="form-control"
               />
             </div>

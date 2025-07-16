@@ -1,4 +1,3 @@
-// src/pages/Autores.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -7,6 +6,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { Tooltip } from 'primereact/tooltip';
 import { autorService } from '../services/autorService';
 import { Card } from 'primereact/card';
 
@@ -44,7 +44,6 @@ const Autores: React.FC = () => {
         try {
             if (editMode) {
                 await autorService.update(newAutor.id, { nombre: newAutor.nombre });
-                // Actualizar el estado local inmediatamente
                 setAutores(prevAutores => 
                     prevAutores.map(autor => 
                         autor.id === newAutor.id ? { ...autor, nombre: newAutor.nombre } : autor
@@ -53,14 +52,17 @@ const Autores: React.FC = () => {
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Autor actualizado', life: 3000 });
             } else {
                 const createdAutor = await autorService.create({ nombre: newAutor.nombre });
-                // Agregar el nuevo autor al estado local
                 setAutores(prevAutores => [...prevAutores, createdAutor]);
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Autor creado', life: 3000 });
             }
             setShowDialog(false);
             setNewAutor({ id: 0, nombre: '' });
-        } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al guardar autor', life: 3000 });
+        } catch (error: any) {
+            console.error('Error al guardar autor:', error);
+            const message = error.message.toLowerCase().includes('forbidden resource')
+                ? 'No tienes permisos para realizar esta acción.'
+                : error.message;
+            toast.current?.show({ severity: 'error', summary: 'Error', detail: message, life: 3000 });
         }
     };
 
@@ -78,16 +80,8 @@ const Autores: React.FC = () => {
             acceptClassName: 'p-button-danger',
             accept: async () => {
                 try {
-                    console.log('Eliminando autor con ID:', id);
                     await autorService.delete(id);
-                    
-                    // Actualizar el estado local inmediatamente sin recargar
-                    setAutores(prevAutores => {
-                        const nuevosAutores = prevAutores.filter(autor => autor.id !== id);
-                        console.log('Autores antes:', prevAutores.length, 'Autores después:', nuevosAutores.length);
-                        return nuevosAutores;
-                    });
-                    
+                    setAutores(prevAutores => prevAutores.filter(autor => autor.id !== id));
                     toast.current?.show({ 
                         severity: 'success', 
                         summary: 'Éxito', 
@@ -95,7 +89,6 @@ const Autores: React.FC = () => {
                         life: 3000 
                     });
                 } catch (error) {
-                    console.error('Error al eliminar autor:', error);
                     toast.current?.show({ 
                         severity: 'error', 
                         summary: 'Error', 
@@ -107,12 +100,47 @@ const Autores: React.FC = () => {
         });
     };
 
+    const actionBodyTemplate = (rowData: Autor) => (
+        <div className="flex gap-2">
+            <Button
+                icon="pi pi-pencil"
+                className="p-button-success p-button-sm"
+                onClick={() => handleEdit(rowData)}
+                data-pr-tooltip="Editar autor"
+            />
+            <Button
+                icon="pi pi-trash"
+                className="p-button-danger p-button-sm"
+                onClick={() => handleDelete(rowData.id)}
+                data-pr-tooltip="Eliminar autor"
+            />
+            <Tooltip target=".p-button-sm" />
+        </div>
+    );
+
+    const dialogFooter = (
+        <div className="flex justify-end gap-2">
+            <Button
+                label="Cancelar"
+                icon="pi pi-times"
+                className="p-button-text"
+                onClick={() => setShowDialog(false)}
+            />
+            <Button
+                label={editMode ? 'Actualizar' : 'Guardar'}
+                icon="pi pi-check"
+                className="p-button-success"
+                onClick={handleCreateOrUpdate}
+            />
+        </div>
+    );
+
     return (
-        <div className="p-4 md:p-6 space-y-6">
+        <div className="p-4 md:p-6 space-y-6 mt-16">
             <Toast ref={toast} />
             <ConfirmDialog />
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Gestión de Autores</h2>
+                <h2 className="text-2xl font-semibold text-gray-800">Gestión de Autores</h2>
                 <Button
                     label="Agregar Autor"
                     icon="pi pi-plus"
@@ -122,29 +150,15 @@ const Autores: React.FC = () => {
                         setNewAutor({ id: 0, nombre: '' });
                         setShowDialog(true);
                     }}
+                    data-pr-tooltip="Crear nuevo autor"
                 />
+                <Tooltip target=".p-button-sm" />
             </div>
 
             <Card className="shadow-md">
                 <DataTable value={autores} responsiveLayout="scroll">
-                    <Column field="nombre" header="Nombre" />
-                    <Column
-                        header="Acciones"
-                        body={(rowData) => (
-                            <div className="flex gap-2">
-                                <Button
-                                    icon="pi pi-pencil"
-                                    className="p-button-warning p-button-sm"
-                                    onClick={() => handleEdit(rowData)}
-                                />
-                                <Button
-                                    icon="pi pi-trash"
-                                    className="p-button-danger p-button-sm"
-                                    onClick={() => handleDelete(rowData.id)}
-                                />
-                            </div>
-                        )}
-                    />
+                    <Column field="nombre" header="Nombre" sortable filter filterMatchMode="contains" />
+                    <Column header="Acciones" body={actionBodyTemplate} />
                 </DataTable>
             </Card>
 
@@ -152,11 +166,12 @@ const Autores: React.FC = () => {
                 header={editMode ? 'Editar Autor' : 'Agregar Autor'}
                 visible={showDialog}
                 onHide={() => setShowDialog(false)}
-                className="w-full md:w-1/2"
+                style={{ width: '30rem' }}
+                footer={dialogFooter}
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="block mb-1 font-semibold">Nombre</label>
+                        <label className="block mb-1 font-semibold text-gray-700">Nombre</label>
                         <InputText
                             value={newAutor.nombre}
                             onChange={(e) => setNewAutor({ ...newAutor, nombre: e.target.value })}
@@ -164,12 +179,6 @@ const Autores: React.FC = () => {
                             placeholder="Nombre del autor"
                         />
                     </div>
-                    <Button
-                        label={editMode ? 'Actualizar' : 'Guardar'}
-                        icon="pi pi-check"
-                        className="p-button-success w-full"
-                        onClick={handleCreateOrUpdate}
-                    />
                 </div>
             </Dialog>
         </div>

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 export const Navbar: React.FC = () => {
     const navigate = useNavigate();
     const { isAuthenticated, logout, roles } = useAuth();
-    const isAdmin = roles.includes('administrador');
+    const isAdmin = roles.some((rol: any) => rol.nombre === 'administrador');
 
   const items = isAuthenticated
     ? [
