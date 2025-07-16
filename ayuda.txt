@@ -18,6 +18,8 @@ Docker build y run del frontend:
 
 docker build -t frontend-vite -f Dockerfile .
 docker run --name frontend-container -p 5173:5173 --env VITE_API_URL=http://host.docker.internal:3000 frontend-vite
+docker run --name frontend-container -p 5173:5173 frontend-vite
+
 ⚠️ IMPORTANTE:
 
 Dentro de Docker, localhost apunta al contenedor mismo.
