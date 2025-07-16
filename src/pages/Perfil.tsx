@@ -117,11 +117,17 @@ const Perfil: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-6 flex justify-center items-center min-h-screen">
+        <div className="p-4 md:p-8 flex justify-center items-center min-h-screen">
             <Toast ref={toast} />
-            <Card className="shadow-md glass-card w-full max-w-2xl animate-scale-in">
-                <h2 className="text-3xl font-bold mb-6 text-center text-gray-800 animate-fade-in-up">Mi Perfil</h2>
-                <div className="space-y-6">
+            <Card className="shadow-md glass-card w-full max-w-lg animate-scale-in px-4 py-6">
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 animate-fade-in-up">Mi Perfil</h2>
+                <form
+                    onSubmit={e => {
+                        e.preventDefault();
+                        handleUpdate();
+                    }}
+                    className="space-y-6"
+                >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block mb-1 font-semibold text-gray-700">Nombre</label>
@@ -151,14 +157,19 @@ const Perfil: React.FC = () => {
                             />
                         </div>
                     </div>
-                    <Button
-                        label="Guardar Cambios"
-                        icon="pi pi-save"
-                        className="p-button-success w-full animate-pulse"
-                        onClick={handleUpdate}
-                        data-pr-tooltip="Guardar cambios del perfil"
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Botón de guardar */}
+                    <div className="flex justify-end mt-2">
+                        <Button
+                            label="Guardar Cambios"
+                            icon="pi pi-save"
+                            className="p-button-success"
+                            onClick={handleUpdate}
+                            data-pr-tooltip="Guardar cambios del perfil"
+                            type="submit"
+                        />
+                    </div>
+                    {/* Datos solo lectura */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
                         <div>
                             <label className="block mb-1 font-semibold text-gray-700">Username</label>
                             <InputText value={usuario.username} className="w-full" disabled />
@@ -186,15 +197,19 @@ const Perfil: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <Button
-                        label={showPasswordDialog ? 'Cancelar cambio de contraseña' : 'Cambiar contraseña'}
-                        icon="pi pi-key"
-                        className="p-button-secondary w-full"
-                        onClick={() => setShowPasswordDialog(!showPasswordDialog)}
-                        data-pr-tooltip="Cambiar la contraseña del usuario"
-                    />
+                    {/* Botón de cambiar contraseña */}
+                    <div className="flex justify-end mt-2">
+                        <Button
+                            label={showPasswordDialog ? 'Cancelar cambio de contraseña' : 'Cambiar contraseña'}
+                            icon="pi pi-key"
+                            className="p-button-secondary"
+                            onClick={() => setShowPasswordDialog(!showPasswordDialog)}
+                            data-pr-tooltip="Cambiar la contraseña del usuario"
+                            type="button"
+                        />
+                    </div>
                     <Tooltip target=".p-button" />
-                </div>
+                </form>
             </Card>
 
             <Dialog

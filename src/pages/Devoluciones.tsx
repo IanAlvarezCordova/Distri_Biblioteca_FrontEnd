@@ -142,8 +142,11 @@ const Devoluciones: React.FC = () => {
                             onChange={(e) => setNewDevolucion({ prestamo: e.value })}
                             placeholder="Selecciona un préstamo"
                             className="w-full"
+                            optionLabel="libro.titulo"
                             itemTemplate={(option: Prestamo) =>
-                                option ? `${option.libro.titulo} - ${option.usuario.nombre} ${option.usuario.apellido}` : ''
+                                option
+                                    ? `${option.libro.titulo} - ${option.usuario.nombre} ${option.usuario.apellido}`
+                                    : 'Selecciona un préstamo'
                             }
                         />
                     </div>

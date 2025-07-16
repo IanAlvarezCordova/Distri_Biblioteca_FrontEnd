@@ -15,7 +15,7 @@ export const prestamoService = {
   findAll: async () => fetchAPI('/prestamo'),
   findOne: async (id: number) => fetchAPI(`/prestamo/${id}`),
   findByUsuarioId: async (usuarioId: number) => fetchAPI(`/prestamo/usuario/${usuarioId}`),
-  create: async (data: { libro: { id: number }; fecha_prestamo: Date; devuelto: boolean }) =>
+  create: async (data: any) =>
     fetchAPI('/prestamo', { method: 'POST', body: JSON.stringify(data) }),
   update: async (id: number, data: { fecha_devolucion?: Date; devuelto: boolean }) =>
     fetchAPI(`/prestamo/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

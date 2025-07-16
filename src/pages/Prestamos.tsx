@@ -34,12 +34,12 @@ interface Usuario {
 
 const Prestamos: React.FC = () => {
     const toast = useRef<Toast>(null);
-    const { user, roles } = useAuth?.() ?? {};
+    const { user, roles } = useAuth();
     const [prestamos, setPrestamos] = useState<Prestamo[]>([]);
     const [libros, setLibros] = useState<Libro[]>([]);
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [showDialog, setShowDialog] = useState(false);
-    const [newPrestamo, setNewPrestamo] = useState<{ libro: Libro | null }>({
+    const [newPrestamo, setNewPrestamo] = useState<{ libro: Libro | null; usuarioId?: number }>({
         libro: null,
     });
 
@@ -54,7 +54,10 @@ const Prestamos: React.FC = () => {
             ]) as [Prestamo[], Libro[], Usuario[]];
             setPrestamos(prestamosData);
             setLibros(librosData.filter((l: Libro) => l.disponible));
-            setUsuarios(usuariosData);
+            setUsuarios(usuariosData.map(u => ({
+                ...u,
+                fullName: `${u.nombre} ${u.apellido}`
+            })));
         } catch (error) {
             toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al cargar datos', life: 3000 });
         }
@@ -69,16 +72,25 @@ const Prestamos: React.FC = () => {
             toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Debe seleccionar un libro', life: 3000 });
             return;
         }
+        if (isAdmin && !newPrestamo.usuarioId) {
+            toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Debe seleccionar un usuario', life: 3000 });
+            return;
+        }
 
         try {
             const today = new Date();
+            const usuarioId = isAdmin ? newPrestamo.usuarioId : user?.id;
+            if (!usuarioId) {
+                toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'No se pudo determinar el usuario.', life: 3000 });
+                return;
+            }
+
             await prestamoService.create({
                 libro: { id: newPrestamo.libro.id },
                 fecha_prestamo: today,
                 devuelto: false,
+                usuarioId, // <-- fuera del objeto libro
             });
-
-            // NO actualizar libro desde el frontend, el backend lo hace
             toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Préstamo registrado', life: 3000 });
             setShowDialog(false);
             setNewPrestamo({ libro: null });
@@ -90,6 +102,23 @@ const Prestamos: React.FC = () => {
             toast.current?.show({ severity: 'error', summary: 'Error', detail: message, life: 3000 });
         }
     };
+
+    const dialogFooter = (
+        <div className="flex justify-end gap-2">
+            <Button
+                label="Cancelar"
+                icon="pi pi-times"
+                className="p-button-text"
+                onClick={() => setShowDialog(false)}
+            />
+            <Button
+                label="Registrar"
+                icon="pi pi-check"
+                className="p-button-success"
+                onClick={handleCreatePrestamo}
+            />
+        </div>
+    );
 
     return (
         <div className="p-4 md:p-6 space-y-6">
@@ -126,7 +155,8 @@ const Prestamos: React.FC = () => {
                 header="Registrar Préstamo"
                 visible={showDialog}
                 onHide={() => setShowDialog(false)}
-                className="w-full md:w-1/2"
+                style={{ width: 'clamp(20rem, 90vw, 30rem)' }}
+                footer={dialogFooter}
             >
                 <div className="space-y-4">
                     <div>
@@ -135,31 +165,25 @@ const Prestamos: React.FC = () => {
                             value={newPrestamo.libro}
                             options={libros}
                             optionLabel="titulo"
-                            onChange={(e) => setNewPrestamo({ libro: e.value })}
+                            onChange={(e) => setNewPrestamo({ ...newPrestamo, libro: e.value })}
                             placeholder="Selecciona un libro"
                             className="w-full"
                         />
                     </div>
-                    {/* Solo los admin pueden seleccionar usuario */}
                     {isAdmin && (
                         <div>
                             <label className="block mb-1 font-semibold">Usuario</label>
                             <Dropdown
-                                value={null}
+                                value={newPrestamo.usuarioId ?? null}
                                 options={usuarios}
-                                optionLabel="nombre"
-                                disabled
-                                placeholder="Solo admin puede seleccionar usuario"
+                                optionLabel="fullName"
+                                optionValue="id"
+                                onChange={(e) => setNewPrestamo({ ...newPrestamo, usuarioId: e.value })}
+                                placeholder="Selecciona un usuario"
                                 className="w-full"
                             />
                         </div>
                     )}
-                    <Button
-                        label="Registrar"
-                        icon="pi pi-check"
-                        className="p-button-success w-full"
-                        onClick={handleCreatePrestamo}
-                    />
                 </div>
             </Dialog>
         </div>

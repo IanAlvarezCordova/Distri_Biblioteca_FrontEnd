@@ -9,27 +9,24 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const { roles, logout } = useAuth();
   const { collapsed, toggleSidebar } = useSidebar();
-  console.log('Roles en Sidebar:', roles); // Añade esta línea
   const isAdmin = roles.some((rol: any) => rol.nombre === 'administrador');
 
   const menuItems = [
-    { label: 'Dashboard', icon: 'pi pi-chart-bar', to: '/dashboard' },
-    { label: 'Libros', icon: 'pi pi-book', to: '/libros' },
-    { label: 'Préstamos', icon: 'pi pi-arrow-right', to: '/prestamos' },
-    { label: 'Devoluciones', icon: 'pi pi-arrow-left', to: '/devoluciones' },
-    { label: 'Autores', icon: 'pi pi-users', to: '/autores' },
-    { label: 'Categorías', icon: 'pi pi-tags', to: '/categorias' },
-    //si tiene entre sus roles, el rol de administrador, muestra el item de configuración
-   //{ label: 'Gestión de Usuarios', icon: 'pi pi-users', to: '/gestion-usuarios', adminOnly: true },
-    { label: 'Gestión de Usuarios', icon: 'pi pi-users', to: '/configuracion', adminOnly: true },
-   { label: 'Perfil', icon: 'pi pi-user', to: '/perfil' },
-    { label: 'Cerrar Sesión', icon: 'pi pi-sign-out', to: '/', className: 'text-red-500', command: () => logout() },
+    { label: 'Dashboard', icon: 'pi pi-chart-bar', to: '/dashboard', color: 'bg-blue-100 text-blue-700' },
+    { label: 'Libros', icon: 'pi pi-book', to: '/libros', color: 'bg-orange-100 text-orange-700' },
+    { label: 'Préstamos', icon: 'pi pi-arrow-right', to: '/prestamos', color: 'bg-green-100 text-green-700' },
+    { label: 'Devoluciones', icon: 'pi pi-arrow-left', to: '/devoluciones', color: 'bg-teal-100 text-teal-700' },
+    { label: 'Autores', icon: 'pi pi-users', to: '/autores', color: 'bg-purple-100 text-purple-700' },
+    { label: 'Categorías', icon: 'pi pi-tags', to: '/categorias', color: 'bg-pink-100 text-pink-700' },
+    { label: 'Gestión de Usuarios', icon: 'pi pi-users', to: '/configuracion', adminOnly: true, color: 'bg-yellow-100 text-yellow-700' },
+    //{ label: 'Gestión de Usuarios', icon: 'pi pi-users', to: '/gestion-usuarios', adminOnly: true },
+    { label: 'Perfil', icon: 'pi pi-user', to: '/perfil', color: 'bg-gray-100 text-gray-700' },
   ];
 
   return (
-    <div className={`h-screen bg-white border-r text-gray-800 transition-all duration-300 fixed left-0 top-0 z-40 flex flex-col ${collapsed ? 'w-16' : 'w-64'}`}>
+    <div className={`h-screen bg-gradient-to-b from-white via-slate-50 to-slate-200 border-r transition-all duration-300 fixed left-0 top-0 z-40 flex flex-col shadow-lg ${collapsed ? 'w-20' : 'w-64'}`}>
       <div className="p-4 flex justify-between items-center">
-        {!collapsed && <h2 className="text-lg font-bold text-gray-700">Menú</h2>}
+        {!collapsed && <h2 className="text-xl font-bold text-orange-500 tracking-wide">Biblioteca</h2>}
         <Button
           icon={`pi ${collapsed ? 'pi-bars' : 'pi-times'}`}
           className="p-button-text text-gray-700"
@@ -38,28 +35,43 @@ const Sidebar: React.FC = () => {
         />
       </div>
 
-      <ul className="flex-1 px-2">
+      <ul className="flex-1 px-2 space-y-2 mt-2">
         {menuItems
           .filter((item) => !item.adminOnly || isAdmin)
           .map((item, index) => (
-            <li key={index} className="mb-1">
+            <li key={index}>
               <Link
                 to={item.to}
-                onClick={(e) => {
-                  if (item.command) {
-                    e.preventDefault();
-                    item.command();
-                  }
-                }}
-                className={`flex items-center gap-2 p-2 rounded transition-all hover:bg-gray-100 ${
-                  location.pathname === item.to ? 'bg-gray-200 font-semibold' : ''
-                } ${item.className || ''}`}
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all
+                  shadow-sm hover:shadow-md hover:scale-[1.03] hover:bg-opacity-90
+                  ${item.color}
+                  ${location.pathname === item.to ? 'ring-2 ring-orange-400 scale-105' : ''}
+                  ${collapsed ? 'justify-center px-2 py-2' : ''}
+                `}
+                style={{ minHeight: '3rem' }}
               >
-                <i className={`${item.icon} text-lg ${collapsed ? 'mx-auto' : ''}`} />
-                {!collapsed && <span>{item.label}</span>}
+                <i className={`${item.icon} text-2xl`} />
+                {!collapsed && <span className="text-base">{item.label}</span>}
               </Link>
             </li>
           ))}
+        {/* Separador visual */}
+        <li className="my-2 border-t border-slate-200" />
+        <li>
+          <button
+            onClick={logout}
+            className={`
+              flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all
+              bg-red-100 text-red-700 hover:bg-red-200 hover:scale-[1.03] shadow-sm
+              w-full ${collapsed ? 'justify-center px-2 py-2' : ''}
+            `}
+            style={{ minHeight: '3rem' }}
+          >
+            <i className="pi pi-sign-out text-2xl" />
+            {!collapsed && <span className="text-base">Cerrar Sesión</span>}
+          </button>
+        </li>
       </ul>
     </div>
   );
