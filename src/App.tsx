@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import { SidebarProvider, useSidebar } from './context/SidebarContext';
-
 import Inicio from './pages/Inicio';
 import Dashboard from './pages/Dashboard';
 import Libros from './pages/Libros';
@@ -16,11 +15,10 @@ import Categorias from './pages/Categorias';
 import Perfil from './pages/Perfil';
 import Login from './pages/Login';
 import Register from './pages/Register';
-
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import AdminRoute from './routes/AdminRoute';
-import { GestionUsuarios } from './pages/GestionUsuarios';
+
 
 const App: React.FC = () => {
   return (

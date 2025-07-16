@@ -7,14 +7,14 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
-import { Navigate } from 'react-router-dom';
+// import { Navigate } from 'react-router-dom';
 import { usuarioService, Usuario, Rol } from '../services/usuarioService';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext';
 
 export const GestionUsuarios: React.FC = () => {
-  const { roles } = useAuth();
+  // const { roles } = useAuth();
 
-  const isAdmin = roles.some((rol: any) => rol.nombre === 'administrador');
+  // const isAdmin = roles.some((rol: any) => rol.nombre === 'administrador');
 
   
 

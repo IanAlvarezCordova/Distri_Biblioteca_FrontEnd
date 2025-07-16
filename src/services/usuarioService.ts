@@ -27,6 +27,7 @@ export const usuarioService = {
         body: JSON.stringify({
             nombre: data.nombre,
             apellido: data.apellido,
+            username: data.username,
             email: data.email,
             password: data.password,
             currentPassword: data.currentPassword,

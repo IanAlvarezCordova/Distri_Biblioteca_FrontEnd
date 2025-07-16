@@ -1,19 +1,24 @@
-FROM node:18 AS build
+# Dockerfile.dev
 
-WORKDIR /usr/src/app
+FROM node:18
 
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar dependencias
 COPY package*.json ./
 
+# Instalar dependencias
 RUN npm install
 
+# Copiar todo el código
 COPY . .
 
-RUN npm run build
+# Exponer puerto 5173 (por defecto en Vite)
+EXPOSE 5173
 
-FROM nginx:alpine
+# Ejecutar Vite en modo dev
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
-COPY --from=build /usr/src/app/dist /usr/share/nginx/html
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+#docker build -t frontend-vite .
+#docker run -p 5173:5173 frontend-vite

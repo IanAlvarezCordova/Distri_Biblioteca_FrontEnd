@@ -28,7 +28,7 @@ const Header: React.FC = () => {
       className="fixed top-0 right-0 z-10 bg-white border-b shadow-sm px-6 py-2 flex justify-end items-center space-x-4 h-14 transition-all duration-300"
       style={{ left: sidebarWidth }}
     >
-      <NotificationBell count={0} />
+      <NotificationBell />
       <div>
         <Avatar icon="pi pi-user" className="cursor-pointer" shape="circle" onClick={(e) => menu.current?.toggle(e)} />
         <Menu model={items} popup ref={menu} />
