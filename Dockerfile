@@ -1,24 +1,23 @@
 # Dockerfile.dev
 
+# Imagen base
 FROM node:18
 
 # Crear directorio de trabajo
 WORKDIR /app
 
-# Copiar dependencias
+# Copiar dependencias (para aprovechar cache)
 COPY package*.json ./
 
 # Instalar dependencias
 RUN npm install
 
-# Copiar todo el código
+# Copiar el resto del código fuente
 COPY . .
 
-# Exponer puerto 5173 (por defecto en Vite)
+# Exponer el puerto por defecto de Vite
 EXPOSE 5173
 
-# Ejecutar Vite en modo dev
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
-#docker build -t frontend-vite .
-#docker run -p 5173:5173 frontend-vite
+# Ejecutar Vite en modo desarrollo, disponible fuera del contenedor
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
