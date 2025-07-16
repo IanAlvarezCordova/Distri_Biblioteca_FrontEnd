@@ -1,2 +1,2 @@
-#configura el entorno de desarrollo
-#REACT_APP_API_URL=https://ejemplo
+#configura el entorno de desarrollo 
+#REACT_APP_API_URL=https://ejemplo o http://localhost:3000
