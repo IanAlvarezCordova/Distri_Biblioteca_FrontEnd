@@ -1,2 +1,2 @@
 #configura el entorno de desarrollo 
-#REACT_APP_API_URL=https://ejemplo o http://localhost:3000
+#REACT_APP_API_URL=https://ejemplo o http://localhost:3000 o docker # VITE_API_URL=http://host.docker.internal:3000

@@ -1,0 +1,44 @@
+en backend
+docker-compose up --build
+
+
+
+en front
+# Construir la imagen
+docker build -t frontend-vite -f Dockerfile
+
+# Ejecutar el contenedor
+docker run -p 5173:5173 frontend-vite
+
+🧪 Verificación rápida (LOCAL)
+Entonces tu frontend (por ejemplo en .env) debe apuntar a:
+
+
+VITE_API_URL=http://host.docker.internal:3000
+
+Tu backend expone el puerto 3000:
+
+
+docker run -p 3000:3000 backend-image
+Tu frontend expone el puerto 5173:
+
+
+docker run -p 5173:5173 frontend-image
+En el frontend, asegúrate que el .env diga:
+
+
+VITE_API_URL=http://host.docker.internal:3000
+Accede desde navegador: http://localhost:5173
+
+--RESUMEN---
+ backend + base de datos:
+
+docker-compose up --build
+🟢 frontend:
+
+docker build -t frontend-vite -f Dockerfile .
+docker run -p 5173:5173 frontend-vite
+🟢 .env en el frontend:
+env
+
+VITE_API_URL=http://host.docker.internal:3000
