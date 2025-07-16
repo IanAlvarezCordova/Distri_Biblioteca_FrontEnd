@@ -1,23 +1,20 @@
 # Dockerfile.dev
 
-# Imagen base
 FROM node:18
 
-# Crear directorio de trabajo
 WORKDIR /app
 
-# Copiar dependencias (para aprovechar cache)
+# Inyectar variable de entorno como ARG y luego pasarla como ENV
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 COPY package*.json ./
 
-# Instalar dependencias
 RUN npm install
 
-# Copiar el resto del código fuente
 COPY . .
 
-# Exponer el puerto por defecto de Vite
 EXPOSE 5173
 
-
-# Ejecutar Vite en modo desarrollo, disponible fuera del contenedor
+# Ejecutar Vite con acceso desde fuera del contenedor
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

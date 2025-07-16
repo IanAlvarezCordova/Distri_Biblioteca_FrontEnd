@@ -5,26 +5,55 @@ docker-compose up --build
 
 en front
 # Construir la imagen
-docker build -t frontend-vite -f Dockerfile
+docker build -t frontend-vite -f Dockerfile .
 
-# Ejecutar el contenedor
-docker run -p 5173:5173 frontend-vite
+✅ CASO 1: Backend local (NO dockerizado)
+El backend corre directamente en tu host, por ejemplo:
 
-🧪 Verificación rápida (LOCAL)
-Entonces tu frontend (por ejemplo en .env) debe apuntar a:
+npm run start:dev
+.env del frontend:
 
+VITE_API_URL=http://localhost:3000
+Docker build y run del frontend:
+
+docker build -t frontend-vite -f Dockerfile .
+docker run --name frontend-container -p 5173:5173 --env VITE_API_URL=http://host.docker.internal:3000 frontend-vite
+⚠️ IMPORTANTE:
+
+Dentro de Docker, localhost apunta al contenedor mismo.
+
+Para acceder al backend corriendo fuera del contenedor (en tu máquina), usa http://host.docker.internal:3000 (funciona en Windows/Mac; en Linux debes usar la IP del host).
+
+✅ CASO 2: Backend dockerizado (con Docker Compose)
+Tu backend y base de datos están corriendo en contenedores vía docker-compose.
+
+Supongamos que tu docker-compose.yml expone el backend en localhost:3000 desde el punto de vista del host.
+
+Entonces, para el frontend fuera de Docker (por ejemplo con Vite local):
+
+VITE_API_URL=http://localhost:3000
+Pero para el frontend dentro de Docker, debes usar:
 
 VITE_API_URL=http://host.docker.internal:3000
+Esto funciona porque aunque backend y frontend estén en contenedores distintos, no están en la misma red si los corres separados.
 
-Tu backend expone el puerto 3000:
+💡 Solución avanzada: crear un docker-compose también para el frontend y poner ambos en la misma red (ver más abajo).
 
+✅ CASO 3: Backend en la nube (Render u otro hosting)
+Ya estás haciendo esto bien.
 
-docker run -p 3000:3000 backend-image
-Tu frontend expone el puerto 5173:
+.env del frontend:
 
+VITE_API_URL=https://distri-biblioteca-backend.onrender.com
 
-docker run -p 5173:5173 frontend-image
-En el frontend, asegúrate que el .env diga:
+docker run -p 5173:5173 --env VITE_API_URL=https://distri-biblioteca-backend.onrender.com frontend-vite
+
+Entonces, para el frontend fuera de Docker (por ejemplo con Vite local):
+
+VITE_API_URL=http://localhost:3000
+Pero para el frontend dentro de Docker, debes usar:
+
+VITE_API_URL=http://host.docker.internal:3000
 
 
 VITE_API_URL=http://host.docker.internal:3000
