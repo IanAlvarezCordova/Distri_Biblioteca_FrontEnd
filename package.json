@@ -7,13 +7,18 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "docker:build": "docker build -t biblioteca-frontend .",
+    "docker:run": "docker run -d -p 8080:80 --name biblioteca-app biblioteca-frontend",
+    "docker:stop": "docker stop biblioteca-app && docker rm biblioteca-app"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.8",
     "antd": "^5.24.2",
     "autoprefixer": "^10.4.21",
     "axios": "^1.8.1",
+    "bootstrap": "^5.3.7",
+    "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.4.9",
     "chartjs-plugin-datalabels": "^2.2.0",
     "postcss": "^8.5.4",
@@ -21,6 +26,7 @@
     "primeicons": "^7.0.0",
     "primereact": "^10.9.2",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.10",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0",

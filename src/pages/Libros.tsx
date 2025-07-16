@@ -6,6 +6,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { libroService } from '../services/libroService';
 import { autorService } from '../services/autorService';
 import { categoriaService } from '../services/categoriaService';
@@ -96,16 +97,23 @@ const Libros: React.FC = () => {
 
         try {
             if (editMode && newLibro.id !== undefined) {
-                await libroService.update(newLibro.id, libroData);
+                const updatedLibro = await libroService.update(newLibro.id, libroData);
+                // Actualizar el estado local inmediatamente
+                setLibros(prevLibros => 
+                    prevLibros.map(libro => 
+                        libro.id === newLibro.id ? {...updatedLibro, ...libroData, id: newLibro.id} : libro
+                    )
+                );
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Libro actualizado', life: 3000 });
             } else {
-                await libroService.create(libroData);
+                const createdLibro = await libroService.create(libroData);
+                // Agregar el nuevo libro al estado local
+                setLibros(prevLibros => [...prevLibros, createdLibro]);
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Libro creado', life: 3000 });
             }
 
             setShowDialog(false);
             setNewLibro({ titulo: '', autor: null, categoria: null, disponible: true });
-            fetchData();
         } catch (error) {
             toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al guardar libro', life: 3000 });
         }
@@ -124,18 +132,46 @@ const Libros: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
-        try {
-            await libroService.delete(id);
-            toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Libro eliminado', life: 3000 });
-            fetchData();
-        } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al eliminar libro', life: 3000 });
-        }
+        confirmDialog({
+            message: '¿Estás seguro de que quieres eliminar este libro?',
+            header: 'Confirmar Eliminación',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'p-button-danger',
+            accept: async () => {
+                try {
+                    console.log('Eliminando libro con ID:', id);
+                    await libroService.delete(id);
+                    
+                    // Actualizar el estado local inmediatamente sin recargar
+                    setLibros(prevLibros => {
+                        const nuevosLibros = prevLibros.filter(libro => libro.id !== id);
+                        console.log('Libros antes:', prevLibros.length, 'Libros después:', nuevosLibros.length);
+                        return nuevosLibros;
+                    });
+                    
+                    toast.current?.show({ 
+                        severity: 'success', 
+                        summary: 'Éxito', 
+                        detail: 'Libro eliminado correctamente', 
+                        life: 3000 
+                    });
+                } catch (error) {
+                    console.error('Error al eliminar libro:', error);
+                    toast.current?.show({ 
+                        severity: 'error', 
+                        summary: 'Error', 
+                        detail: 'Error al eliminar libro', 
+                        life: 3000 
+                    });
+                }
+            }
+        });
     };
 
     return (
         <div className="p-4 md:p-6 space-y-6">
             <Toast ref={toast} />
+            <ConfirmDialog />
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Gestión de Libros</h2>
                 <Button

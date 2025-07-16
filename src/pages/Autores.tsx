@@ -6,6 +6,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { autorService } from '../services/autorService';
 import { Card } from 'primereact/card';
 
@@ -43,14 +44,21 @@ const Autores: React.FC = () => {
         try {
             if (editMode) {
                 await autorService.update(newAutor.id, { nombre: newAutor.nombre });
+                // Actualizar el estado local inmediatamente
+                setAutores(prevAutores => 
+                    prevAutores.map(autor => 
+                        autor.id === newAutor.id ? { ...autor, nombre: newAutor.nombre } : autor
+                    )
+                );
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Autor actualizado', life: 3000 });
             } else {
-                await autorService.create({ nombre: newAutor.nombre });
+                const createdAutor = await autorService.create({ nombre: newAutor.nombre });
+                // Agregar el nuevo autor al estado local
+                setAutores(prevAutores => [...prevAutores, createdAutor]);
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Autor creado', life: 3000 });
             }
             setShowDialog(false);
             setNewAutor({ id: 0, nombre: '' });
-            fetchData();
         } catch (error) {
             toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al guardar autor', life: 3000 });
         }
@@ -63,18 +71,46 @@ const Autores: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
-        try {
-            await autorService.delete(id);
-            toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Autor eliminado', life: 3000 });
-            fetchData();
-        } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al eliminar autor', life: 3000 });
-        }
+        confirmDialog({
+            message: '¿Estás seguro de que quieres eliminar este autor?',
+            header: 'Confirmar Eliminación',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'p-button-danger',
+            accept: async () => {
+                try {
+                    console.log('Eliminando autor con ID:', id);
+                    await autorService.delete(id);
+                    
+                    // Actualizar el estado local inmediatamente sin recargar
+                    setAutores(prevAutores => {
+                        const nuevosAutores = prevAutores.filter(autor => autor.id !== id);
+                        console.log('Autores antes:', prevAutores.length, 'Autores después:', nuevosAutores.length);
+                        return nuevosAutores;
+                    });
+                    
+                    toast.current?.show({ 
+                        severity: 'success', 
+                        summary: 'Éxito', 
+                        detail: 'Autor eliminado correctamente', 
+                        life: 3000 
+                    });
+                } catch (error) {
+                    console.error('Error al eliminar autor:', error);
+                    toast.current?.show({ 
+                        severity: 'error', 
+                        summary: 'Error', 
+                        detail: 'Error al eliminar autor', 
+                        life: 3000 
+                    });
+                }
+            }
+        });
     };
 
     return (
         <div className="p-4 md:p-6 space-y-6">
             <Toast ref={toast} />
+            <ConfirmDialog />
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Gestión de Autores</h2>
                 <Button

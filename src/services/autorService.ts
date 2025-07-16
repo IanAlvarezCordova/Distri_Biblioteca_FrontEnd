@@ -40,5 +40,5 @@ export const autorService = {
         method: 'PUT',
         body: JSON.stringify(data),
     }),
-    delete: async (id: number): Promise<void> => await fetchAPI(`/autores/${id}`, { method: 'DELETE' }),
+    delete: async (id: number): Promise<void> => await fetchAPI(`/autor/${id}`, { method: 'DELETE' }),
 };

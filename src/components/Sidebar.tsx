@@ -1,13 +1,14 @@
 // src/components/Sidebar.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from 'primereact/button';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSidebar } from '../context/SidebarContext';
 
 const Sidebar: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { roles, logout } = useAuth();
+  const { collapsed, toggleSidebar } = useSidebar();
 
   const isAdmin = roles.includes('administrador');
 
@@ -24,13 +25,13 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <div className={`h-screen bg-white border-r text-gray-800 transition-all duration-300 fixed z-20 flex flex-col ${collapsed ? 'w-16' : 'w-64'}`}>
+    <div className={`h-screen bg-white border-r text-gray-800 transition-all duration-300 fixed left-0 top-0 z-40 flex flex-col ${collapsed ? 'w-16' : 'w-64'}`}>
       <div className="p-4 flex justify-between items-center">
         {!collapsed && <h2 className="text-lg font-bold text-gray-700">Menú</h2>}
         <Button
           icon={`pi ${collapsed ? 'pi-bars' : 'pi-times'}`}
           className="p-button-text text-gray-700"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleSidebar}
           aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
         />
       </div>

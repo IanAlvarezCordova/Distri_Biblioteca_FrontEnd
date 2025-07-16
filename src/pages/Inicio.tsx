@@ -5,15 +5,16 @@ import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import { useAuth } from '../context/AuthContext';
 
-const Home: React.FC = () => {
+const Inicio: React.FC = () => {
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
+        console.log('🏠 Página Inicio cargada - isAuthenticated:', isAuthenticated);
         const loginText = document.getElementById('login-text');
         const registerText = document.getElementById('register-text');
         if (loginText) loginText.classList.add('animate-slide-in-left');
         if (registerText) registerText.classList.add('animate-slide-in-right');
-    }, []);
+    }, [isAuthenticated]);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 px-4">
@@ -59,4 +60,4 @@ const Home: React.FC = () => {
     );
 };
 
-export default Home;
+export default Inicio;

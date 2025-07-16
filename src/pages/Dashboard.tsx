@@ -38,6 +38,8 @@ interface Devolucion {
 }
 
 const Dashboard: React.FC = () => {
+  console.log('🏠 Dashboard - Componente inicializándose');
+  
   const toast = useRef<Toast>(null);
   const pieChartRef = useRef<Chart | null>(null);
   const barChartRef = useRef<Chart | null>(null);
@@ -47,12 +49,21 @@ const Dashboard: React.FC = () => {
   const [devolucionesRecientes, setDevolucionesRecientes] = useState<Devolucion[]>([]);
 
   useEffect(() => {
+    console.log('🔄 Dashboard - useEffect ejecutándose');
     const fetchData = async () => {
       try {
+        console.log('📊 Dashboard - Cargando datos...');
         const dashboardStats = await libroService.getDashboardStats();
         const usuarios = await usuarioService.findAll();
         const prestamos = await prestamoService.findAll();
         const devoluciones = await devolucionService.findAll();
+        
+        console.log('✅ Dashboard - Datos cargados:', {
+          stats: dashboardStats,
+          usuarios: usuarios.length,
+          prestamos: prestamos.length,
+          devoluciones: devoluciones.length
+        });
 
         const today = new Date();
         const fiveMonthsAgo = new Date(today);
@@ -109,8 +120,12 @@ const Dashboard: React.FC = () => {
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'right' },
+              legend: { 
+                display: true,
+                position: 'bottom'
+              },
             },
           },
         });
@@ -150,25 +165,19 @@ const Dashboard: React.FC = () => {
           },
           options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'top' },
+              legend: { 
+                display: false
+              },
             },
             scales: {
               y: {
+                display: false,
                 beginAtZero: true,
-                ticks: {
-                  stepSize: 1,
-                },
-                title: {
-                  display: true,
-                  text: 'Cantidad',
-                },
               },
               x: {
-                title: {
-                  display: true,
-                  text: 'Mes',
-                },
+                display: false,
               },
             },
           },
@@ -177,66 +186,111 @@ const Dashboard: React.FC = () => {
     }
   }, [stats]);
 
-  if (!stats) return <div className="p-4">Cargando datos...</div>;
+  if (!stats) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <i className="pi pi-spin pi-spinner text-4xl text-blue-600 mb-4"></i>
+        <p className="text-lg text-gray-600">Cargando datos del dashboard...</p>
+      </div>
+    </div>
+  );
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const userBodyTemplate = (rowData: any) => {
+    return `${rowData.usuario.nombre} ${rowData.usuario.apellido}`;
+  };
+
+  const bookBodyTemplate = (rowData: any) => {
+    return rowData.libro.titulo;
+  };
+
+  const dateBodyTemplate = (rowData: any, field: string) => {
+    const date = field === 'fecha_prestamo' ? rowData.fecha_prestamo : rowData.fecha_devolucion;
+    return formatDate(date);
+  };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="p-6">
       <Toast ref={toast} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <h1 className="text-2xl font-bold mb-6">📊 Dashboard</h1>
+      
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <Card>
-          <h3>Libros Disponibles</h3>
-          <p className="text-2xl font-bold">{stats.librosDisponibles}</p>
+          <div className="flex items-center justify-between p-2">
+            <div>
+              <h3 className="text-xs text-gray-600">Libros Disponibles</h3>
+              <p className="text-lg font-bold text-green-600">{stats.librosDisponibles}</p>
+            </div>
+            <i className="pi pi-book text-green-600 text-sm"></i>
+          </div>
         </Card>
+        
         <Card>
-          <h3>Total Usuarios</h3>
-          <p className="text-2xl font-bold">{totalUsuarios}</p>
+          <div className="flex items-center justify-between p-2">
+            <div>
+              <h3 className="text-xs text-gray-600">Total Usuarios</h3>
+              <p className="text-lg font-bold text-blue-600">{totalUsuarios}</p>
+            </div>
+            <i className="pi pi-users text-blue-600 text-sm"></i>
+          </div>
         </Card>
+        
         <Card>
-          <h3>Préstamos Activos</h3>
-          <p className="text-2xl font-bold">{stats.prestamos}</p>
+          <div className="flex items-center justify-between p-2">
+            <div>
+              <h3 className="text-xs text-gray-600">Préstamos</h3>
+              <p className="text-lg font-bold text-orange-600">{stats.prestamos}</p>
+            </div>
+            <i className="pi pi-clock text-orange-600 text-sm"></i>
+          </div>
         </Card>
       </div>
-
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">Libros por Categoría</h2>
-        <div className="h-80">
-          <canvas id="pieChart"></canvas>
-        </div>
-      </Card>
-
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">Préstamos y Devoluciones Mensuales</h2>
-        <div className="h-96">
-          <canvas id="barChart"></canvas>
-        </div>
-      </Card>
-
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">Préstamos Recientes</h2>
-        <DataTable value={prestamosRecientes}>
-          <Column field="libro.titulo" header="Libro" />
-          <Column
-            field="usuario"
-            header="Usuario"
-            body={(row) => `${row.usuario.nombre} ${row.usuario.apellido}`}
-          />
-          <Column field="fecha_prestamo" header="Fecha" />
-        </DataTable>
-      </Card>
-
-      <Card>
-        <h2 className="text-xl font-semibold mb-4">Devoluciones Recientes</h2>
-        <DataTable value={devolucionesRecientes}>
-          <Column field="libro.titulo" header="Libro" />
-          <Column
-            field="usuario"
-            header="Usuario"
-            body={(row) => `${row.usuario.nombre} ${row.usuario.apellido}`}
-          />
-          <Column field="fecha_devolucion" header="Fecha" />
-        </DataTable>
-      </Card>
+      
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-3">
+        <Card>
+          <h2 className="text-xs font-medium mb-1 text-gray-500">Libros por Categoría</h2>
+          <div className="h-6">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </Card>
+        
+        <Card>
+          <h2 className="text-xs font-medium mb-1 text-gray-500">Préstamos y Devoluciones</h2>
+          <div className="h-6">
+            <canvas id="barChart"></canvas>
+          </div>
+        </Card>
+      </div>
+      
+      {/* Tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <h2 className="text-lg font-semibold mb-4">Préstamos Recientes</h2>
+          <DataTable value={prestamosRecientes} size="small">
+            <Column field="libro.titulo" header="Libro" body={bookBodyTemplate} />
+            <Column field="usuario" header="Usuario" body={userBodyTemplate} />
+            <Column field="fecha_prestamo" header="Fecha" body={(rowData) => dateBodyTemplate(rowData, 'fecha_prestamo')} />
+          </DataTable>
+        </Card>
+        
+        <Card>
+          <h2 className="text-lg font-semibold mb-4">Devoluciones Recientes</h2>
+          <DataTable value={devolucionesRecientes} size="small">
+            <Column field="libro.titulo" header="Libro" body={bookBodyTemplate} />
+            <Column field="usuario" header="Usuario" body={userBodyTemplate} />
+            <Column field="fecha_devolucion" header="Fecha" body={(rowData) => dateBodyTemplate(rowData, 'fecha_devolucion')} />
+          </DataTable>
+        </Card>
+      </div>
     </div>
   );
 };

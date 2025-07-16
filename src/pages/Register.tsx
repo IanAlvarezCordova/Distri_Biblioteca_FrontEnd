@@ -1,9 +1,7 @@
 // src/pages/Register.tsx
 import React, { useState, useRef } from 'react';
-import { InputText } from 'primereact/inputtext';
-import { Password } from 'primereact/password';
-import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
+import { Password } from 'primereact/password';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 
@@ -22,12 +20,7 @@ const Register: React.FC = () => {
   }>({});
 
   const validateForm = () => {
-    const newErrors: {
-      nombre?: string;
-      apellido?: string;
-      email?: string;
-      password?: string;
-    } = {};
+    const newErrors: typeof errors = {};
     if (!nombre) newErrors.nombre = 'El nombre es obligatorio';
     if (!apellido) newErrors.apellido = 'El apellido es obligatorio';
     if (!email) newErrors.email = 'El correo es obligatorio';
@@ -62,79 +55,101 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center p-4">
+    <div className="container d-flex justify-content-center align-items-center min-vh-100">
       <Toast ref={toast} />
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center mb-6 animate-text-reveal">
-          Registrarse
-        </h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-1 font-semibold text-gray-700">
-              Nombre
-            </label>
-            <InputText
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className={`w-full ${errors.nombre ? 'p-invalid' : ''}`}
-            />
-            {errors.nombre && (
-              <small className="p-error block mt-1">{errors.nombre}</small>
-            )}
+      <div className="card shadow p-4 w-100" style={{ maxWidth: '500px' }}>
+        <h2 className="text-center mb-4">Registrarse</h2>
+        <form>
+          <div className="mb-3">
+            <label className="form-label">Nombre</label>
+            <div className="input-group">
+              <span className="input-group-text">
+                <i className="bi bi-person-fill"></i>
+              </span>
+              <input
+                type="text"
+                className={`form-control ${errors.nombre ? 'is-invalid' : ''}`}
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+              />
+              {errors.nombre && (
+                <div className="invalid-feedback">{errors.nombre}</div>
+              )}
+            </div>
           </div>
-          <div>
-            <label className="block mb-1 font-semibold text-gray-700">
-              Apellido
-            </label>
-            <InputText
-              value={apellido}
-              onChange={(e) => setApellido(e.target.value)}
-              className={`w-full ${errors.apellido ? 'p-invalid' : ''}`}
-            />
-            {errors.apellido && (
-              <small className="p-error block mt-1">{errors.apellido}</small>
-            )}
+
+          <div className="mb-3">
+            <label className="form-label">Apellido</label>
+            <div className="input-group">
+              <span className="input-group-text">
+                <i className="bi bi-person-badge-fill"></i>
+              </span>
+              <input
+                type="text"
+                className={`form-control ${errors.apellido ? 'is-invalid' : ''}`}
+                value={apellido}
+                onChange={(e) => setApellido(e.target.value)}
+              />
+              {errors.apellido && (
+                <div className="invalid-feedback">{errors.apellido}</div>
+              )}
+            </div>
           </div>
-          <div>
-            <label className="block mb-1 font-semibold text-gray-700">
-              Correo
-            </label>
-            <InputText
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={`w-full ${errors.email ? 'p-invalid' : ''}`}
-            />
-            {errors.email && (
-              <small className="p-error block mt-1">{errors.email}</small>
-            )}
+
+          <div className="mb-3">
+            <label className="form-label">Correo</label>
+            <div className="input-group">
+              <span className="input-group-text">
+                <i className="bi bi-envelope-fill"></i>
+              </span>
+              <input
+                type="email"
+                className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {errors.email && (
+                <div className="invalid-feedback">{errors.email}</div>
+              )}
+            </div>
           </div>
-          <div>
-            <label className="block mb-1 font-semibold text-gray-700">
-              Contraseña
-            </label>
-            <Password
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`w-full ${errors.password ? 'p-invalid' : ''}`}
-              toggleMask
-              feedback={false}
-            />
-            {errors.password && (
-              <small className="p-error block mt-1">{errors.password}</small>
-            )}
+
+          <div className="mb-4">
+            <label className="form-label">Contraseña</label>
+            <div className="input-group">
+              <span className="input-group-text">
+                <i className="bi bi-lock-fill"></i>
+              </span>
+              <Password
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                toggleMask
+                feedback={false}
+                inputClassName="border-0 w-100"
+              />
+              {errors.password && (
+                <div className="invalid-feedback d-block">{errors.password}</div>
+              )}
+            </div>
           </div>
-          <Button
-            label="Registrarse"
-            className="w-full p-button-primary"
+
+          <button
+            type="button"
+            className="btn btn-primary w-100 mb-3"
             onClick={handleRegister}
-          />
-          <p className="text-center text-gray-600">
+          >
+            <i className="bi bi-person-plus me-2"></i>
+            Registrarse
+          </button>
+
+          <p className="text-center">
             ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="text-blue-500 hover:underline">
+            <Link to="/login" className="text-decoration-none">
               Inicia sesión
             </Link>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );

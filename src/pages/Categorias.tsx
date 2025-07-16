@@ -6,6 +6,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { categoriaService } from '../services/categoriaService';
 import { Card } from 'primereact/card';
 
@@ -23,9 +24,13 @@ const Categorias: React.FC = () => {
 
     const fetchData = async () => {
         try {
+            console.log('Cargando categorías...');
             const categoriasData = await categoriaService.findAll();
+            console.log('Categorías cargadas:', categoriasData);
             setCategorias(categoriasData);
+            console.log('Estado de categorías actualizado');
         } catch (error) {
+            console.error('Error al cargar categorías:', error);
             toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al cargar categorías', life: 3000 });
         }
     };
@@ -43,14 +48,21 @@ const Categorias: React.FC = () => {
         try {
             if (editMode) {
                 await categoriaService.update(newCategoria.id, { nombre: newCategoria.nombre });
+                // Actualizar el estado local inmediatamente
+                setCategorias(prevCategorias => 
+                    prevCategorias.map(categoria => 
+                        categoria.id === newCategoria.id ? { ...categoria, nombre: newCategoria.nombre } : categoria
+                    )
+                );
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Categoría actualizada', life: 3000 });
             } else {
-                await categoriaService.create({ nombre: newCategoria.nombre });
+                const createdCategoria = await categoriaService.create({ nombre: newCategoria.nombre });
+                // Agregar la nueva categoría al estado local
+                setCategorias(prevCategorias => [...prevCategorias, createdCategoria]);
                 toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Categoría creada', life: 3000 });
             }
             setShowDialog(false);
             setNewCategoria({ id: 0, nombre: '' });
-            fetchData();
         } catch (error) {
             toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al guardar categoría', life: 3000 });
         }
@@ -63,18 +75,62 @@ const Categorias: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
-        try {
-            await categoriaService.delete(id);
-            toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Categoría eliminada', life: 3000 });
-            fetchData();
-        } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al eliminar categoría', life: 3000 });
-        }
+        console.log('=== INICIO ELIMINACIÓN ===');
+        console.log('ID a eliminar:', id);
+        console.log('Categorías actuales:', categorias);
+        
+        confirmDialog({
+            message: '¿Estás seguro de que quieres eliminar esta categoría?',
+            header: 'Confirmar Eliminación',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'p-button-danger',
+            accept: async () => {
+                try {
+                    console.log('Usuario confirmó eliminación');
+                    console.log('Llamando a categoriaService.delete con ID:', id);
+                    
+                    const result = await categoriaService.delete(id);
+                    console.log('Respuesta del servicio delete:', result);
+                    
+                    console.log('Actualizando estado local...');
+                    // Actualizar el estado local inmediatamente sin recargar
+                    setCategorias(prevCategorias => {
+                        console.log('Estado anterior:', prevCategorias);
+                        const nuevasCategorias = prevCategorias.filter(categoria => {
+                            const mantener = categoria.id !== id;
+                            console.log(`Categoría ${categoria.id} (${categoria.nombre}): ${mantener ? 'mantener' : 'eliminar'}`);
+                            return mantener;
+                        });
+                        console.log('Nuevo estado:', nuevasCategorias);
+                        return nuevasCategorias;
+                    });
+                    
+                    console.log('Estado actualizado, mostrando toast...');
+                    toast.current?.show({ 
+                        severity: 'success', 
+                        summary: 'Éxito', 
+                        detail: 'Categoría eliminada correctamente', 
+                        life: 3000 
+                    });
+                    console.log('=== FIN ELIMINACIÓN EXITOSA ===');
+                } catch (error) {
+                    console.error('=== ERROR EN ELIMINACIÓN ===');
+                    console.error('Error completo:', error);
+                    toast.current?.show({ 
+                        severity: 'error', 
+                        summary: 'Error', 
+                        detail: 'Error al eliminar categoría', 
+                        life: 3000 
+                    });
+                }
+            }
+        });
     };
 
     return (
         <div className="p-4 md:p-6 space-y-6">
             <Toast ref={toast} />
+            <ConfirmDialog />
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-semibold">Gestión de Categorías</h2>
                 <Button

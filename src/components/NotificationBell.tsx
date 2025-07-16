@@ -11,7 +11,7 @@ interface Notification {
 
 interface Props {
     count: number;
-    onClick: (event: React.MouseEvent<HTMLElement>) => void;
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void;
 }
 
 const NotificationBell: React.FC<Props> = ({ count, onClick }) => {
@@ -31,7 +31,7 @@ const NotificationBell: React.FC<Props> = ({ count, onClick }) => {
                 className="pi pi-bell text-2xl cursor-pointer"
                 onClick={(e) => {
                     op.current?.toggle(e);
-                    onClick(e); // Llamamos al onClick externo
+                    onClick?.(e); // Llamamos al onClick externo si existe
                 }}
             >
                 {count > 0 && (
