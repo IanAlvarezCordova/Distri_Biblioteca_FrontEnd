@@ -56,7 +56,7 @@ const AppContent: React.FC = () => {
 };
 
 // Componente separado para la aplicación autenticada
-const AuthenticatedApp: React.FC<{ isAdmin: boolean }> = ({ isAdmin }) => {
+const AuthenticatedApp: React.FC<{ isAdmin: boolean }> = ({  }) => {
   const { sidebarWidth } = useSidebar();
   
   return (
