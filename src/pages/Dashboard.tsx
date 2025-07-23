@@ -5,7 +5,6 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Toast } from 'primereact/toast';
 import Chart from 'chart.js/auto';
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { libroService } from '../services/libroService';
 import { prestamoService } from '../services/prestamoService';
 import { devolucionService } from '../services/devolucionService';
@@ -232,8 +231,8 @@ const Dashboard: React.FC = () => {
             <i className="pi pi-book text-green-600 text-sm"></i>
           </div>
         </Card>
+
         
-        <SpeedInsights/>
         
         <Card>
           <div className="flex items-center justify-between p-2">
