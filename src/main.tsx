@@ -12,11 +12,18 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import Chart from 'chart.js/auto';
 import './index.css';
 
+
+
+
 Chart.register(ChartDataLabels);
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
+  
   <React.StrictMode>
-    <App />
+     
+ 
+    <App /> 
+    
   </React.StrictMode>
 );
