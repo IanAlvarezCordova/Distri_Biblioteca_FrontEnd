@@ -1,14 +1,17 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-    content: ['./src/**/*.{js,jsx,ts,tsx}'],
-    darkMode: 'class', // Permite alternar entre claro y oscuro con una clase
-    theme: {
-      extend: {
-        colors: {
-          primary: '#3B82F6', // Color principal (azul moderno)
-          secondary: '#10B981', // Color secundario (verde esmeralda)
+export default {
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
         },
       },
     },
-    plugins: [],
-  };
+  },
+  plugins: [],
+};

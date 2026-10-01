@@ -201,11 +201,11 @@ const Libros: React.FC = () => {
     );
 
     return (
-        <div className="p-4 md:p-6 space-y-6 mt-16">
+        <div className="app-page space-y-6 animate-app-in">
             <Toast ref={toast} />
             <ConfirmDialog />
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold text-gray-800">Gestión de Libros</h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Gestión de Libros</h2>
                 <Button
                     label="Agregar Libro"
                     icon="pi pi-plus"
@@ -220,7 +220,7 @@ const Libros: React.FC = () => {
                 <Tooltip target=".p-button-sm" />
             </div>
 
-            <Card className="shadow-md">
+            <Card className="shadow-none">
                 <DataTable value={libros} responsiveLayout="scroll">
                     <Column field="titulo" header="Título" sortable filter filterMatchMode="contains" />
                     <Column field="autor.nombre" header="Autor" sortable filter filterMatchMode="contains" />
@@ -244,7 +244,7 @@ const Libros: React.FC = () => {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="block mb-1 font-semibold text-gray-700">Título</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">Título</label>
                         <InputText
                             value={newLibro.titulo}
                             onChange={(e) => setNewLibro({ ...newLibro, titulo: e.target.value })}
@@ -253,7 +253,7 @@ const Libros: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block mb-1 font-semibold text-gray-700">Autor</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">Autor</label>
                         <Dropdown
                             value={newLibro.autor}
                             options={autores}
@@ -264,7 +264,7 @@ const Libros: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <label className="block mb-1 font-semibold text-gray-700">Categoría</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">Categoría</label>
                         <Dropdown
                             value={newLibro.categoria}
                             options={categorias}

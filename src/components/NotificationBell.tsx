@@ -79,18 +79,11 @@ const NotificationBell: React.FC = () => {
     return (
         <div className="relative flex items-center">
             <button
-                className="
-                    relative flex items-center justify-center
-                    rounded-full bg-orange-100 hover:bg-orange-200 transition
-                    shadow border border-orange-200
-                    w-11 h-11 p-button p-button-rounded p-button-text p-button-lg
-                    focus:outline-none
-                "
-                style={{ width: 44, height: 44, fontSize: 24 }} // Increased fontSize for larger icon
+                className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none"
                 onClick={handleBellClick}
                 aria-label="Notificaciones"
             >
-                <i className="pi pi-bell text-orange-500" />
+                <i className="pi pi-bell text-base" />
                 {notifications.length > 0 && !notificacionesLeidas && (
                     <span
                         className="absolute top-0 right-0 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold"
@@ -112,16 +105,16 @@ const NotificationBell: React.FC = () => {
             </button>
             <OverlayPanel ref={op} className="w-72 p-0">
                 <div className="p-4">
-                    <h3 className="text-lg font-semibold mb-2 text-orange-500 flex items-center gap-2">
+                    <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-slate-900">
                         <i className="pi pi-bell" /> Notificaciones
                     </h3>
                     {notifications.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">No hay notificaciones</p>
+                        <p className="py-5 text-center text-sm text-slate-500">No hay notificaciones</p>
                     ) : (
                         notifications.map((notif) => (
-                            <div key={notif.id} className="p-2 border-b last:border-b-0">
-                                <p className="text-sm text-gray-800">{notif.mensaje}</p>
-                                <p className="text-xs text-gray-500">{new Date(notif.fecha).toLocaleDateString()}</p>
+                            <div key={notif.id} className="border-b border-slate-100 px-1 py-3 last:border-b-0">
+                                <p className="text-sm font-medium text-slate-700">{notif.mensaje}</p>
+                                <p className="mt-1 text-xs text-slate-400">{new Date(notif.fecha).toLocaleDateString()}</p>
                             </div>
                         ))
                     )}

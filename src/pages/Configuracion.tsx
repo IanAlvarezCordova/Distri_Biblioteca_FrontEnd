@@ -144,9 +144,9 @@ const Configuracion: React.FC = () => {
   // Columnas de la tabla
   const rolesBodyTemplate = (rowData: Usuario) => rowData.roles.map((rol: Rol) => rol.nombre).join(', ');
   const ultimoAccesoBodyTemplate = (rowData: Usuario) => {
-    if (!rowData.ultimo_acceso) return <span className="text-gray-400">Nunca</span>;
+    if (!rowData.ultimo_acceso) return <span className="text-slate-400">Nunca</span>;
     const fecha = new Date(rowData.ultimo_acceso);
-    return <span className="text-gray-700">{fecha.toLocaleString('es-ES')}</span>;
+    return <span className="text-slate-700">{fecha.toLocaleString('es-ES')}</span>;
   };
 
   const actionBodyTemplate = (rowData: Usuario) => (
@@ -190,11 +190,11 @@ const Configuracion: React.FC = () => {
   );
 
   return (
-    <div className="p-4 md:p-6 space-y-6 mt-16">
+    <div className="app-page space-y-6 animate-app-in">
       <Toast ref={toast} />
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Gestión de Usuarios</h2>
 
-      <Card className="shadow-md">
+      <Card className="shadow-none">
         <DataTable value={usuarios} responsiveLayout="scroll">
           <Column field="nombre" header="Nombre" sortable filter />
           <Column field="apellido" header="Apellido" sortable filter />
@@ -234,7 +234,7 @@ const Configuracion: React.FC = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block mb-1 font-semibold text-gray-700">Nombre</label>
+            <label className="mb-2 block text-sm font-bold text-slate-700">Nombre</label>
             <InputText
               value={editUsuario.nombre || ''}
               onChange={(e) => setEditUsuario({ ...editUsuario, nombre: e.target.value })}
@@ -242,7 +242,7 @@ const Configuracion: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block mb-1 font-semibold text-gray-700">Apellido</label>
+            <label className="mb-2 block text-sm font-bold text-slate-700">Apellido</label>
             <InputText
               value={editUsuario.apellido || ''}
               onChange={(e) => setEditUsuario({ ...editUsuario, apellido: e.target.value })}
@@ -250,7 +250,7 @@ const Configuracion: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block mb-1 font-semibold text-gray-700">Email</label>
+            <label className="mb-2 block text-sm font-bold text-slate-700">Email</label>
             <InputText
               value={editUsuario.email || ''}
               onChange={(e) => setEditUsuario({ ...editUsuario, email: e.target.value })}
@@ -258,7 +258,7 @@ const Configuracion: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block mb-1 font-semibold text-gray-700">Username</label>
+            <label className="mb-2 block text-sm font-bold text-slate-700">Username</label>
             <InputText
               value={editUsuario.username || ''}
               onChange={(e) => setEditUsuario({ ...editUsuario, username: e.target.value })}
@@ -292,7 +292,7 @@ const Configuracion: React.FC = () => {
         }
       >
         <div className="space-y-4">
-          <label className="block mb-1 font-semibold text-gray-700">Roles</label>
+          <label className="mb-2 block text-sm font-bold text-slate-700">Roles</label>
           <MultiSelect
             value={selectedRoles}
             options={roles}

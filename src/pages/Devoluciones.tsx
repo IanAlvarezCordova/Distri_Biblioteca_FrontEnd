@@ -97,10 +97,10 @@ const Devoluciones: React.FC = () => {
     );
 
     return (
-        <div className="p-4 md:p-6 space-y-6 mt-16">
+        <div className="app-page space-y-6 animate-app-in">
             <Toast ref={toast} />
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold text-gray-800">Gestión de Devoluciones</h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Gestión de Devoluciones</h2>
                 <Button
                     label="Registrar Devolución"
                     icon="pi pi-plus"
@@ -111,7 +111,7 @@ const Devoluciones: React.FC = () => {
                 <Tooltip target=".p-button-sm" />
             </div>
 
-            <Card className="shadow-md">
+            <Card className="shadow-none">
                 <DataTable value={devoluciones} responsiveLayout="scroll">
                     <Column field="libro.titulo" header="Libro" sortable filter filterMatchMode="contains" />
                     <Column
@@ -135,7 +135,7 @@ const Devoluciones: React.FC = () => {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="block mb-1 font-semibold text-gray-700">Préstamo</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">Préstamo</label>
                         <Dropdown
                             value={newDevolucion.prestamo}
                             options={prestamos}
