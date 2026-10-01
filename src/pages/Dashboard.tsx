@@ -1,6 +1,4 @@
-// src/pages/Dashboard.tsx
-import React, { useEffect, useState, useRef } from 'react';
-import { Card } from 'primereact/card';
+import React, { useEffect, useRef, useState } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Toast } from 'primereact/toast';
@@ -37,8 +35,6 @@ interface Devolucion {
 }
 
 const Dashboard: React.FC = () => {
-  console.log('🏠 Dashboard - Componente inicializándose');
-  
   const toast = useRef<Toast>(null);
   const pieChartRef = useRef<Chart | null>(null);
   const barChartRef = useRef<Chart | null>(null);
@@ -48,253 +44,344 @@ const Dashboard: React.FC = () => {
   const [devolucionesRecientes, setDevolucionesRecientes] = useState<Devolucion[]>([]);
 
   useEffect(() => {
-    console.log('🔄 Dashboard - useEffect ejecutándose');
     const fetchData = async () => {
       try {
-        console.log('📊 Dashboard - Cargando datos...');
         const dashboardStats = await libroService.getDashboardStats();
         const usuarios = await usuarioService.findAll();
         const prestamos = await prestamoService.findAll();
         const devoluciones = await devolucionService.findAll();
-        
-        console.log('✅ Dashboard - Datos cargados:', {
-          stats: dashboardStats,
-          usuarios: usuarios.length,
-          prestamos: prestamos.length,
-          devoluciones: devoluciones.length
-        });
 
         const today = new Date();
         const fiveMonthsAgo = new Date(today);
         fiveMonthsAgo.setMonth(today.getMonth() - 5);
 
-        const updatedDashboardStats = {
+        setStats({
           ...dashboardStats,
-          librosPorCategoria: dashboardStats.librosPorCategoria.map((c: any) => ({
-            categoria_nombre: c.categoria_nombre,
-            total: Number(c.total),
+          librosPorCategoria: dashboardStats.librosPorCategoria.map((item: any) => ({
+            categoria_nombre: item.categoria_nombre,
+            total: Number(item.total),
           })),
-        };
-
-        setStats(updatedDashboardStats);
+        });
         setTotalUsuarios(usuarios.length);
         setPrestamosRecientes(
           prestamos
-            .filter((p: Prestamo) => new Date(p.fecha_prestamo) >= fiveMonthsAgo)
-            .slice(0, 5)
+            .filter((item: Prestamo) => new Date(item.fecha_prestamo) >= fiveMonthsAgo)
+            .slice(0, 5),
         );
         setDevolucionesRecientes(
           devoluciones
-            .filter((d: Devolucion) => new Date(d.fecha_devolucion) >= fiveMonthsAgo)
-            .slice(0, 5)
+            .filter((item: Devolucion) => new Date(item.fecha_devolucion) >= fiveMonthsAgo)
+            .slice(0, 5),
         );
-
-        toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Datos cargados', life: 3000 });
-      } catch (err) {
-        console.error(err);
-        toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al cargar dashboard', life: 3000 });
+      } catch (error) {
+        console.error(error);
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo cargar el dashboard',
+          life: 3000,
+        });
       }
     };
 
     fetchData();
   }, []);
 
-  // Gráfico de Pastel: Libros por Categoría
   useEffect(() => {
-    if (stats) {
-      const canvas = document.getElementById('pieChart') as HTMLCanvasElement;
-      if (pieChartRef.current) pieChartRef.current.destroy();
+    if (!stats || stats.librosPorCategoria.length === 0) return;
 
-      if (canvas) {
-        pieChartRef.current = new Chart(canvas, {
-          type: 'pie',
-          data: {
-            labels: stats.librosPorCategoria.map((c) => c.categoria_nombre),
-            datasets: [
-              {
-                data: stats.librosPorCategoria.map((c) => c.total),
-                backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'],
-              },
-            ],
+    const canvas = document.getElementById('categoryChart') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    pieChartRef.current?.destroy();
+    pieChartRef.current = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: stats.librosPorCategoria.map((item) => item.categoria_nombre),
+        datasets: [
+          {
+            data: stats.librosPorCategoria.map((item) => item.total),
+            backgroundColor: ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'],
+            borderWidth: 0,
+            hoverOffset: 5,
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { 
-                display: true,
-                position: 'bottom'
-              },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 10,
+              boxHeight: 10,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 18,
+              color: '#64748b',
+              font: { size: 11, weight: 600 },
             },
           },
-        });
-      }
-    }
-  }, [stats]);
-
-  // Gráfico de barras: Préstamos y Devoluciones Mensuales
-  useEffect(() => {
-    if (stats && stats.prestamosDevolucionesMensuales?.length > 0) {
-      const canvas = document.getElementById('barChart') as HTMLCanvasElement;
-      if (barChartRef.current) barChartRef.current.destroy();
-
-      const meses = stats.prestamosDevolucionesMensuales.map((m) =>
-        new Date(m.mes + '-01').toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })
-      );
-      const prestamos = stats.prestamosDevolucionesMensuales.map((m) => m.prestamos);
-      const devoluciones = stats.prestamosDevolucionesMensuales.map((m) => m.devoluciones);
-
-      if (canvas) {
-        barChartRef.current = new Chart(canvas, {
-          type: 'bar',
-          data: {
-            labels: meses,
-            datasets: [
-              {
-                label: 'Préstamos',
-                data: prestamos,
-                backgroundColor: '#3B82F6',
-              },
-              {
-                label: 'Devoluciones',
-                data: devoluciones,
-                backgroundColor: '#10B981',
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { 
-                display: false
-              },
-            },
-            scales: {
-              y: {
-                display: false,
-                beginAtZero: true,
-              },
-              x: {
-                display: false,
-              },
-            },
-          },
-        });
-      }
-    }
-  }, [stats]);
-
-  if (!stats) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <i className="pi pi-spin pi-spinner text-4xl text-blue-600 mb-4"></i>
-        <p className="text-lg text-gray-600">Cargando datos del dashboard...</p>
-      </div>
-    </div>
-  );
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+        },
+      },
     });
-  };
 
-  const userBodyTemplate = (rowData: any) => {
-    return `${rowData.usuario.nombre} ${rowData.usuario.apellido}`;
-  };
+    return () => pieChartRef.current?.destroy();
+  }, [stats]);
 
-  const bookBodyTemplate = (rowData: any) => {
-    return rowData.libro.titulo;
-  };
+  useEffect(() => {
+    if (!stats || !stats.prestamosDevolucionesMensuales?.length) return;
 
-  const dateBodyTemplate = (rowData: any, field: string) => {
-    const date = field === 'fecha_prestamo' ? rowData.fecha_prestamo : rowData.fecha_devolucion;
-    return formatDate(date);
-  };
+    const canvas = document.getElementById('activityChart') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    barChartRef.current?.destroy();
+
+    const labels = stats.prestamosDevolucionesMensuales.map((item) =>
+      new Date(item.mes + '-01').toLocaleDateString('es-ES', { month: 'short' }),
+    );
+
+    barChartRef.current = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Préstamos',
+            data: stats.prestamosDevolucionesMensuales.map((item) => item.prestamos),
+            backgroundColor: '#4f46e5',
+            borderRadius: 8,
+            borderSkipped: false,
+          },
+          {
+            label: 'Devoluciones',
+            data: stats.prestamosDevolucionesMensuales.map((item) => item.devoluciones),
+            backgroundColor: '#06b6d4',
+            borderRadius: 8,
+            borderSkipped: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: 8,
+              boxHeight: 8,
+              color: '#64748b',
+              font: { size: 11, weight: 600 },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: '#94a3b8', font: { size: 11 } },
+          },
+          y: {
+            beginAtZero: true,
+            border: { display: false },
+            grid: { color: '#eef2f7' },
+            ticks: { color: '#94a3b8', precision: 0, font: { size: 11 } },
+          },
+        },
+      },
+    });
+
+    return () => barChartRef.current?.destroy();
+  }, [stats]);
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+
+  if (!stats) {
+    return (
+      <div className="app-page flex min-h-[65vh] items-center justify-center">
+        <div className="text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+            <i className="pi pi-spin pi-spinner text-xl" />
+          </span>
+          <p className="mt-4 text-sm font-bold text-slate-700">Cargando dashboard</p>
+          <p className="mt-1 text-xs text-slate-400">Estamos preparando la información.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const kpis = [
+    {
+      label: 'Libros disponibles',
+      value: stats.librosDisponibles,
+      icon: 'pi pi-book',
+      color: 'text-emerald-600',
+      iconBg: 'bg-emerald-50',
+      accent: 'from-emerald-500 to-teal-400',
+    },
+    {
+      label: 'Usuarios',
+      value: totalUsuarios,
+      icon: 'pi pi-users',
+      color: 'text-indigo-600',
+      iconBg: 'bg-indigo-50',
+      accent: 'from-indigo-500 to-violet-500',
+    },
+    {
+      label: 'Préstamos',
+      value: stats.prestamos,
+      icon: 'pi pi-arrow-up-right',
+      color: 'text-amber-600',
+      iconBg: 'bg-amber-50',
+      accent: 'from-amber-400 to-orange-500',
+    },
+    {
+      label: 'Devoluciones',
+      value: stats.devoluciones,
+      icon: 'pi pi-arrow-down-left',
+      color: 'text-cyan-600',
+      iconBg: 'bg-cyan-50',
+      accent: 'from-cyan-500 to-sky-500',
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="app-page animate-app-in">
       <Toast ref={toast} />
-      <div className="mb-6">
-        <p className="mb-1 text-sm font-semibold uppercase tracking-[0.18em] text-orange-500">Resumen general</p>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
-        <p className="mt-2 text-sm text-slate-500">Consulta de un vistazo la actividad principal de la biblioteca.</p>
-      </div>
-      
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-3">
-        <Card>
-          <div className="flex items-center justify-between p-2">
-            <div>
-              <h3 className="text-xs text-gray-600">Libros Disponibles</h3>
-              <p className="text-lg font-bold text-green-600">{stats.librosDisponibles}</p>
-            </div>
-            <i className="pi pi-book text-green-600 text-sm"></i>
-          </div>
-        </Card>
 
-        
-        
-        <Card>
-          <div className="flex items-center justify-between p-2">
-            <div>
-              <h3 className="text-xs text-gray-600">Total Usuarios</h3>
-              <p className="text-lg font-bold text-blue-600">{totalUsuarios}</p>
-            </div>
-            <i className="pi pi-users text-blue-600 text-sm"></i>
-          </div>
-        </Card>
-        
-        <Card>
-          <div className="flex items-center justify-between p-2">
-            <div>
-              <h3 className="text-xs text-gray-600">Préstamos</h3>
-              <p className="text-lg font-bold text-orange-600">{stats.prestamos}</p>
-            </div>
-            <i className="pi pi-clock text-orange-600 text-sm"></i>
-          </div>
-        </Card>
+      <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p className="app-eyebrow">Resumen general</p>
+          <h1 className="app-title">Actividad de la biblioteca</h1>
+          <p className="app-subtitle">Consulta indicadores, distribución del catálogo y movimientos recientes.</p>
+        </div>
+        <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          Sistema operativo
+        </div>
       </div>
-      
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card>
-          <h2 className="text-base font-semibold mb-4 text-slate-800">Libros por Categoría</h2>
-          <div className="h-72">
-            <canvas id="pieChart"></canvas>
-          </div>
-        </Card>
-        
-        <Card>
-          <h2 className="text-base font-semibold mb-4 text-slate-800">Préstamos y Devoluciones</h2>
-          <div className="h-72">
-            <canvas id="barChart"></canvas>
-          </div>
-        </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((item) => (
+          <article key={item.label} className="app-card relative overflow-hidden p-5">
+            <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${item.accent}`} />
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-500">{item.label}</p>
+                <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{item.value}</p>
+              </div>
+              <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.iconBg} ${item.color}`}>
+                <i className={item.icon} />
+              </span>
+            </div>
+          </article>
+        ))}
       </div>
-      
-      {/* Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <h2 className="text-lg font-semibold mb-4">Préstamos Recientes</h2>
-          <DataTable value={prestamosRecientes} size="small">
-            <Column field="libro.titulo" header="Libro" body={bookBodyTemplate} />
-            <Column field="usuario" header="Usuario" body={userBodyTemplate} />
-            <Column field="fecha_prestamo" header="Fecha" body={(rowData) => dateBodyTemplate(rowData, 'fecha_prestamo')} />
-          </DataTable>
-        </Card>
-        
-        <Card>
-          <h2 className="text-lg font-semibold mb-4">Devoluciones Recientes</h2>
-          <DataTable value={devolucionesRecientes} size="small">
-            <Column field="libro.titulo" header="Libro" body={bookBodyTemplate} />
-            <Column field="usuario" header="Usuario" body={userBodyTemplate} />
-            <Column field="fecha_devolucion" header="Fecha" body={(rowData) => dateBodyTemplate(rowData, 'fecha_devolucion')} />
-          </DataTable>
-        </Card>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <section className="app-card p-5 sm:p-6">
+          <div className="mb-5 flex items-start justify-between">
+            <div>
+              <p className="text-sm font-extrabold text-slate-900">Libros por categoría</p>
+              <p className="mt-1 text-xs text-slate-500">Distribución actual del catálogo</p>
+            </div>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <i className="pi pi-chart-pie text-sm" />
+            </span>
+          </div>
+          <div className="h-72">
+            {stats.librosPorCategoria.length > 0 ? (
+              <canvas id="categoryChart" />
+            ) : (
+              <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70">
+                <div className="text-center">
+                  <i className="pi pi-chart-pie text-xl text-slate-300" />
+                  <p className="mt-2 text-xs font-semibold text-slate-400">Aún no hay libros por categoría</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="app-card p-5 sm:p-6">
+          <div className="mb-5 flex items-start justify-between">
+            <div>
+              <p className="text-sm font-extrabold text-slate-900">Actividad mensual</p>
+              <p className="mt-1 text-xs text-slate-500">Préstamos frente a devoluciones</p>
+            </div>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600">
+              <i className="pi pi-chart-bar text-sm" />
+            </span>
+          </div>
+          <div className="h-72">
+            {stats.prestamosDevolucionesMensuales?.length > 0 ? (
+              <canvas id="activityChart" />
+            ) : (
+              <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70">
+                <div className="text-center">
+                  <i className="pi pi-chart-bar text-xl text-slate-300" />
+                  <p className="mt-2 text-xs font-semibold text-slate-400">Aún no hay actividad mensual</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <section className="app-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
+            <div>
+              <p className="text-sm font-extrabold text-slate-900">Préstamos recientes</p>
+              <p className="mt-1 text-xs text-slate-500">Últimos movimientos registrados</p>
+            </div>
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-extrabold text-amber-700">
+              {prestamosRecientes.length} registros
+            </span>
+          </div>
+          {prestamosRecientes.length > 0 ? (
+            <DataTable value={prestamosRecientes} size="small" className="border-0">
+              <Column field="libro.titulo" header="Libro" body={(rowData) => rowData.libro.titulo} />
+              <Column field="usuario" header="Usuario" body={(rowData) => `${rowData.usuario.nombre} ${rowData.usuario.apellido}`} />
+              <Column field="fecha_prestamo" header="Fecha" body={(rowData) => formatDate(rowData.fecha_prestamo)} />
+            </DataTable>
+          ) : (
+            <div className="px-6 py-10 text-center text-sm text-slate-400">No hay préstamos recientes.</div>
+          )}
+        </section>
+
+        <section className="app-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
+            <div>
+              <p className="text-sm font-extrabold text-slate-900">Devoluciones recientes</p>
+              <p className="mt-1 text-xs text-slate-500">Últimos libros recibidos</p>
+            </div>
+            <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[10px] font-extrabold text-cyan-700">
+              {devolucionesRecientes.length} registros
+            </span>
+          </div>
+          {devolucionesRecientes.length > 0 ? (
+            <DataTable value={devolucionesRecientes} size="small" className="border-0">
+              <Column field="libro.titulo" header="Libro" body={(rowData) => rowData.libro.titulo} />
+              <Column field="usuario" header="Usuario" body={(rowData) => `${rowData.usuario.nombre} ${rowData.usuario.apellido}`} />
+              <Column field="fecha_devolucion" header="Fecha" body={(rowData) => formatDate(rowData.fecha_devolucion)} />
+            </DataTable>
+          ) : (
+            <div className="px-6 py-10 text-center text-sm text-slate-400">No hay devoluciones recientes.</div>
+          )}
+        </section>
       </div>
     </div>
   );

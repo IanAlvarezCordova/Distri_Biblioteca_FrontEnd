@@ -1,4 +1,3 @@
-// src/context/SidebarContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface SidebarContextType {
@@ -10,13 +9,15 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 1024 : false
+  );
 
   const toggleSidebar = () => {
-    setCollapsed(!collapsed);
+    setCollapsed((current) => !current);
   };
 
-  const sidebarWidth = collapsed ? '4rem' : '16rem'; // w-16 = 4rem, w-64 = 16rem
+  const sidebarWidth = collapsed ? '4.75rem' : '16.5rem';
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggleSidebar, sidebarWidth }}>

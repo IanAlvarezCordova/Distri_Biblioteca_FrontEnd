@@ -14,8 +14,8 @@ export default defineConfig({
         short_name: 'Biblioteca',
         start_url: '/',
         display: 'standalone',
-        background_color: '#F9FAFB', // Fondo gris claro para un look limpio
-        theme_color: '#3B82F6', // Azul moderno y claro
+        background_color: '#F6F8FC', // Fondo gris claro para un look limpio
+        theme_color: '#111827', // Azul moderno y claro
         icons: [
           {
             src: '/icons/icon-128x128.png',

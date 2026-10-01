@@ -1,9 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { Toast } from 'primereact/toast';
+import React, { useRef, useState } from 'react';
 import { Password } from 'primereact/password';
+import { Toast } from 'primereact/toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
-import logo from '../assets/logo.png';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -28,85 +27,128 @@ const Register: React.FC = () => {
 
   const handleRegister = async () => {
     if (!nombre || !apellido || !email || !password) {
-      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Por favor, completa todos los campos', life: 3000 });
+      toast.current?.show({ severity: 'warn', summary: 'Campos incompletos', detail: 'Completa todos los campos', life: 3000 });
       return;
     }
-    if (nombre.split(' ').length > 1) {
-      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Solo se permite un único nombre', life: 3000 });
+    if (nombre.trim().split(/\s+/).length > 1) {
+      toast.current?.show({ severity: 'warn', summary: 'Nombre inválido', detail: 'Solo se permite un único nombre', life: 3000 });
       return;
     }
-    if (apellido.split(' ').length > 1) {
-      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Solo se permite un único apellido', life: 3000 });
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'El correo no es válido', life: 3000 });
-      return;
-    }
-    if (password.length < 5) {
-      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'La contraseña debe tener al menos 5 caracteres', life: 3000 });
+    if (apellido.trim().split(/\s+/).length > 1) {
+      toast.current?.show({ severity: 'warn', summary: 'Apellido inválido', detail: 'Solo se permite un único apellido', life: 3000 });
       return;
     }
     if (!validateForm()) return;
 
     try {
       await authService.register(nombre, apellido, email, password);
-      toast.current?.show({ severity: 'success', summary: 'Éxito', detail: 'Registro exitoso. Inicia sesión para continuar.', life: 3000 });
-      setTimeout(() => navigate('/login'), 2000);
+      toast.current?.show({ severity: 'success', summary: 'Cuenta creada', detail: 'Registro exitoso. Inicia sesión para continuar.', life: 3000 });
+      setTimeout(() => navigate('/login'), 1800);
     } catch {
-      toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Error al registrar usuario', life: 3000 });
+      toast.current?.show({ severity: 'error', summary: 'No se pudo registrar', detail: 'Verifica tus datos e intenta nuevamente', life: 3000 });
     }
   };
 
-  const fieldClass = (hasError?: string) =>
-    `w-full rounded-xl border bg-white px-4 py-3 text-slate-800 outline-none transition ${hasError ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100'}`;
+  const inputClass = (error?: string) =>
+    `w-full rounded-xl border bg-white px-3.5 py-3 text-sm text-slate-800 outline-none transition ${
+      error
+        ? 'border-rose-400 ring-2 ring-rose-100'
+        : 'border-slate-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
+    }`;
 
   return (
-    <main className="auth-shell flex min-h-screen items-center justify-center px-4 py-10">
+    <main className="auth-shell flex min-h-screen items-center justify-center px-4 py-8 sm:px-6">
       <Toast ref={toast} />
-      <div className="auth-card w-full max-w-lg rounded-3xl p-6 sm:p-8">
-        <div className="mb-7 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50">
-            <img src={logo} alt="Biblioteca Digital" className="h-10 w-10 object-contain" />
+
+      <div className="auth-card w-full max-w-2xl rounded-[2rem] p-6 sm:p-9">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="app-eyebrow">Nueva cuenta</p>
+            <h1 className="app-title">Únete a la biblioteca</h1>
+            <p className="app-subtitle">Crea tu perfil para acceder al catálogo y gestionar tus préstamos.</p>
           </div>
-          <p className="text-sm font-semibold text-orange-500">Biblioteca Digital</p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">Crea tu cuenta</h1>
-          <p className="mt-2 text-sm text-slate-500">Completa tus datos para comenzar.</p>
+          <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 text-white shadow-lg shadow-indigo-500/20 sm:flex">
+            <i className="pi pi-user-plus" />
+          </div>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); handleRegister(); }} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={(e) => { e.preventDefault(); handleRegister(); }} className="mt-8 space-y-5">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">Nombre</label>
-              <input type="text" className={fieldClass(errors.nombre)} value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" />
-              {errors.nombre && <p className="mt-1 text-xs text-red-600">{errors.nombre}</p>}
+              <label className="mb-2 block text-sm font-bold text-slate-700">Nombre</label>
+              <input
+                type="text"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className={inputClass(errors.nombre)}
+                placeholder="Ian"
+                autoComplete="given-name"
+              />
+              {errors.nombre && <p className="mt-1.5 text-xs font-medium text-rose-600">{errors.nombre}</p>}
             </div>
+
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">Apellido</label>
-              <input type="text" className={fieldClass(errors.apellido)} value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Apellido" />
-              {errors.apellido && <p className="mt-1 text-xs text-red-600">{errors.apellido}</p>}
+              <label className="mb-2 block text-sm font-bold text-slate-700">Apellido</label>
+              <input
+                type="text"
+                value={apellido}
+                onChange={(e) => setApellido(e.target.value)}
+                className={inputClass(errors.apellido)}
+                placeholder="Alvarez"
+                autoComplete="family-name"
+              />
+              {errors.apellido && <p className="mt-1.5 text-xs font-medium text-rose-600">{errors.apellido}</p>}
             </div>
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Correo electrónico</label>
-            <input type="email" className={fieldClass(errors.email)} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="correo@ejemplo.com" />
-            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+            <label className="mb-2 block text-sm font-bold text-slate-700">Correo electrónico</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputClass(errors.email)}
+              placeholder="correo@ejemplo.com"
+              autoComplete="email"
+            />
+            {errors.email && <p className="mt-1.5 text-xs font-medium text-rose-600">{errors.email}</p>}
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Contraseña</label>
-            <Password value={password} onChange={(e) => setPassword(e.target.value)} className="w-full" inputClassName={`w-full ${errors.password ? 'p-invalid' : ''}`} toggleMask feedback placeholder="Mínimo 5 caracteres" />
-            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
+            <div className="mb-2 flex items-center justify-between">
+              <label className="text-sm font-bold text-slate-700">Contraseña</label>
+              <span className="text-xs font-medium text-slate-400">Mínimo 5 caracteres</span>
+            </div>
+            <Password
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              toggleMask
+              feedback
+              placeholder="Crea una contraseña"
+              className="w-full"
+              inputClassName={`w-full ${errors.password ? 'p-invalid' : ''}`}
+              autoComplete="new-password"
+            />
+            {errors.password && <p className="mt-1.5 text-xs font-medium text-rose-600">{errors.password}</p>}
           </div>
 
-          <button type="submit" className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-600">
-            Crear cuenta <i className="pi pi-user-plus" />
+          <button
+            type="submit"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-4 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-indigo-500/20 transition hover:-translate-y-0.5 hover:shadow-xl"
+          >
+            Crear mi cuenta <i className="pi pi-arrow-right text-xs" />
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-500">¿Ya tienes cuenta? <Link to="/login" className="font-semibold text-orange-600 hover:text-orange-700">Inicia sesión</Link></p>
-        <Link to="/" className="mt-3 block text-center text-xs font-medium text-slate-400 hover:text-slate-600">Volver al inicio</Link>
+        <div className="mt-7 flex flex-col items-center justify-between gap-3 border-t border-slate-100 pt-6 text-sm sm:flex-row">
+          <Link to="/" className="font-semibold text-slate-400 transition hover:text-slate-600">
+            <i className="pi pi-arrow-left mr-2 text-xs" /> Volver al inicio
+          </Link>
+          <p className="text-slate-500">
+            ¿Ya tienes cuenta?{' '}
+            <Link to="/login" className="font-extrabold text-indigo-600 hover:text-indigo-700">Inicia sesión</Link>
+          </p>
+        </div>
       </div>
     </main>
   );

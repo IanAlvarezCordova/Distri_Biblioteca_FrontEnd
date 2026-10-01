@@ -1,8 +1,6 @@
-// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { SidebarProvider, useSidebar } from './context/SidebarContext';
 import Inicio from './pages/Inicio';
 import Dashboard from './pages/Dashboard';
@@ -19,75 +17,61 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import AdminRoute from './routes/AdminRoute';
 
-
-const App: React.FC = () => {
-  return (
-    <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
-  );
-};
+const App: React.FC = () => (
+  <Router>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  </Router>
+);
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, roles } = useAuth();
-  const isAdmin = roles.some((rol: any) => rol.nombre === 'administrador');
-  
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/" element={<Inicio />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
 
   return (
-    <>
-      {!isAuthenticated ? (
-        // Layout para páginas no autenticadas
-        <Routes>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
-      ) : (
-        // Layout para aplicación autenticada con contexto del sidebar
-        <SidebarProvider>
-          <AuthenticatedApp isAdmin={isAdmin} />
-        </SidebarProvider>
-      )}
-    </>
+    <SidebarProvider>
+      <AuthenticatedApp />
+    </SidebarProvider>
   );
 };
 
-// Componente separado para la aplicación autenticada
-const AuthenticatedApp: React.FC<{ isAdmin: boolean }> = ({  }) => {
+const AuthenticatedApp: React.FC = () => {
   const { sidebarWidth } = useSidebar();
-  
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#f6f8fc]">
       <Sidebar />
-      
-      <div className="min-h-screen">
-        <Header />
-        
-        <main 
-          className="min-h-screen overflow-x-hidden bg-slate-50 px-4 pb-8 pt-20 transition-all duration-300 sm:px-6 lg:px-8"
-          style={{ 
-            marginLeft: sidebarWidth === 'collapsed' ? '70px' : '250px'
-          }}
-        >
-          <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/libros" element={<Libros />} />
-            <Route path="/prestamos" element={<Prestamos />} />
-            <Route path="/devoluciones" element={<Devoluciones />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/autores" element={<Autores />} />
-            <Route path="/categorias" element={<Categorias />} />
-            <Route element={<AdminRoute />}>
-              <Route path="/configuracion" element={<Configuracion />} />
-              {/* <Route path="/gestion-usuarios" element={<GestionUsuarios />} /> */}
-            </Route>
-            <Route path="*" element={<Navigate to="/dashboard" />} />
-          </Routes>
-        </main>
-      </div>
+      <Header />
+
+      <main
+        className="min-h-screen px-4 pb-10 pt-24 transition-[margin] duration-300 sm:px-6 lg:px-8"
+        style={{ marginLeft: sidebarWidth }}
+      >
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/libros" element={<Libros />} />
+          <Route path="/prestamos" element={<Prestamos />} />
+          <Route path="/devoluciones" element={<Devoluciones />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/autores" element={<Autores />} />
+          <Route path="/categorias" element={<Categorias />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/configuracion" element={<Configuracion />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </main>
     </div>
   );
 };

@@ -136,11 +136,11 @@ const Categorias: React.FC = () => {
     );
 
     return (
-        <div className="p-4 md:p-6 space-y-6 mt-16">
+        <div className="app-page space-y-6 animate-app-in">
             <Toast ref={toast} />
             <ConfirmDialog />
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold text-gray-800">Gestión de Categorías</h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Gestión de Categorías</h2>
                 <Button
                     label="Agregar Categoría"
                     icon="pi pi-plus"
@@ -155,7 +155,7 @@ const Categorias: React.FC = () => {
                 <Tooltip target=".p-button-sm" />
             </div>
 
-            <Card className="shadow-md">
+            <Card className="shadow-none">
                 <DataTable value={categorias} responsiveLayout="scroll">
                     <Column field="nombre" header="Nombre" sortable filter filterMatchMode="contains" />
                     <Column header="Acciones" body={actionBodyTemplate} />
@@ -171,7 +171,7 @@ const Categorias: React.FC = () => {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="block mb-1 font-semibold text-gray-700">Nombre</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">Nombre</label>
                         <InputText
                             value={newCategoria.nombre}
                             onChange={(e) => setNewCategoria({ ...newCategoria, nombre: e.target.value })}

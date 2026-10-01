@@ -121,10 +121,10 @@ const Prestamos: React.FC = () => {
     );
 
     return (
-        <div className="p-4 md:p-6 space-y-6">
+        <div className="app-page space-y-6 animate-app-in">
             <Toast ref={toast} />
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Gestión de Préstamos</h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Gestión de Préstamos</h2>
                 <Button
                     label="Registrar Préstamo"
                     icon="pi pi-plus"
@@ -133,7 +133,7 @@ const Prestamos: React.FC = () => {
                 />
             </div>
 
-            <Card className="shadow-md">
+            <Card className="shadow-none">
                 <DataTable value={prestamos} responsiveLayout="scroll">
                     <Column field="libro.titulo" header="Libro" />
                     <Column
@@ -160,7 +160,7 @@ const Prestamos: React.FC = () => {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="block mb-1 font-semibold">Libro</label>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">Libro</label>
                         <Dropdown
                             value={newPrestamo.libro}
                             options={libros}
@@ -172,7 +172,7 @@ const Prestamos: React.FC = () => {
                     </div>
                     {isAdmin && (
                         <div>
-                            <label className="block mb-1 font-semibold">Usuario</label>
+                            <label className="mb-2 block text-sm font-bold text-slate-700">Usuario</label>
                             <Dropdown
                                 value={newPrestamo.usuarioId ?? null}
                                 options={usuarios}
