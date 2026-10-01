@@ -1,10 +1,10 @@
-// src/pages/Login.tsx
 import React, { useState, useRef } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { Password } from 'primereact/password';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/logo.png';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,33 +14,16 @@ const Login: React.FC = () => {
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    // Validaciones locales
     if (!email || !password) {
-      toast.current?.show({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'Por favor, completa todos los campos',
-        life: 3000,
-      });
+      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'Por favor, completa todos los campos', life: 3000 });
       return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      toast.current?.show({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'El correo no es válido',
-        life: 3000,
-      });
+      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'El correo no es válido', life: 3000 });
       return;
     }
-    //contraseña mínima 5
     if (password.length < 5) {
-      toast.current?.show({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'La contraseña debe tener al menos 5 caracteres',
-        life: 3000,
-      });
+      toast.current?.show({ severity: 'warn', summary: 'Advertencia', detail: 'La contraseña debe tener al menos 5 caracteres', life: 3000 });
       return;
     }
 
@@ -48,9 +31,6 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/dashboard');
     } catch (error: any) {
-      // Depurar el mensaje de error
-      console.log('Error recibido:', error.message);
-
       const message = error.message.toLowerCase().includes('el email no esta registrado')
         ? 'El correo no está registrado'
         : error.message.toLowerCase().includes('la contraseña es incorrecta')
@@ -58,72 +38,46 @@ const Login: React.FC = () => {
         : error.message.toLowerCase().includes('permisos')
         ? 'No tienes permisos para realizar esta acción'
         : 'Error al iniciar sesión. Por favor, intenta de nuevo.';
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Error',
-        detail: message,
-        life: 3000,
-      });
+      toast.current?.show({ severity: 'error', summary: 'Error', detail: message, life: 3000 });
     }
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center min-vh-100 bg-light">
+    <main className="auth-shell flex min-h-screen items-center justify-center px-4 py-10">
       <Toast ref={toast} />
-      <div className="card shadow p-4 w-100" style={{ maxWidth: '500px' }}>
-        <h2 className="text-center mb-4">Iniciar Sesión</h2>
-        <form>
-          <div className="mb-3">
-            <label className="form-label">Correo</label>
-            <div className="input-group">
-              <span className="input-group-text">
-                <i className="bi bi-envelope-fill"></i>
-              </span>
-              <InputText
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Correo"
-                className="form-control"
-              />
-            </div>
+      <div className="auth-card w-full max-w-md rounded-3xl p-6 sm:p-8">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50">
+            <img src={logo} alt="Biblioteca Digital" className="h-12 w-12 object-contain" />
+          </div>
+          <p className="text-sm font-semibold text-orange-500">Biblioteca Digital</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900">Bienvenido de nuevo</h1>
+          <p className="mt-2 text-sm text-slate-500">Ingresa con tus credenciales para continuar.</p>
+        </div>
+
+        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-5">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Correo electrónico</label>
+            <span className="p-input-icon-left w-full">
+              <i className="pi pi-envelope" />
+              <InputText value={email} onChange={(e) => setEmail(e.target.value)} placeholder="correo@ejemplo.com" className="w-full pl-10" />
+            </span>
           </div>
 
-          <div className="mb-4">
-            <label className="form-label">Contraseña</label>
-            <div className="input-group">
-              <span className="input-group-text">
-                <i className="bi bi-lock-fill"></i>
-              </span>
-              <Password
-                feedback={false}
-                value={password}
-                toggleMask
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Contraseña"
-                inputClassName="border-0 w-100"
-                className="form-control"
-              />
-            </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">Contraseña</label>
+            <Password feedback={false} value={password} toggleMask onChange={(e) => setPassword(e.target.value)} placeholder="Ingresa tu contraseña" inputClassName="w-full" className="w-full" />
           </div>
 
-          <button
-            type="button"
-            className="btn btn-success w-100 mb-3"
-            onClick={handleLogin}
-          >
-            <i className="bi bi-box-arrow-in-right me-2"></i>
-            Iniciar Sesión
+          <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-600">
+            Iniciar sesión <i className="pi pi-arrow-right" />
           </button>
-
-          <p className="text-center">
-            ¿No tienes cuenta?{' '}
-            <Link to="/register" className="text-decoration-none">
-              Regístrate
-            </Link>
-          </p>
         </form>
+
+        <p className="mt-6 text-center text-sm text-slate-500">¿No tienes cuenta? <Link to="/register" className="font-semibold text-orange-600 hover:text-orange-700">Regístrate</Link></p>
+        <Link to="/" className="mt-3 block text-center text-xs font-medium text-slate-400 hover:text-slate-600">Volver al inicio</Link>
       </div>
-    </div>
+    </main>
   );
 };
 

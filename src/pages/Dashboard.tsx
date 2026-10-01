@@ -216,12 +216,16 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="mx-auto max-w-7xl">
       <Toast ref={toast} />
-      <h1 className="text-2xl font-bold mb-6">📊 Dashboard</h1>
+      <div className="mb-6">
+        <p className="mb-1 text-sm font-semibold uppercase tracking-[0.18em] text-orange-500">Resumen general</p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+        <p className="mt-2 text-sm text-slate-500">Consulta de un vistazo la actividad principal de la biblioteca.</p>
+      </div>
       
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <div className="flex items-center justify-between p-2">
             <div>
@@ -256,17 +260,17 @@ const Dashboard: React.FC = () => {
       </div>
       
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
-          <h2 className="text-xs font-medium mb-1 text-gray-500">Libros por Categoría</h2>
-          <div className="h-6">
+          <h2 className="text-base font-semibold mb-4 text-slate-800">Libros por Categoría</h2>
+          <div className="h-72">
             <canvas id="pieChart"></canvas>
           </div>
         </Card>
         
         <Card>
-          <h2 className="text-xs font-medium mb-1 text-gray-500">Préstamos y Devoluciones</h2>
-          <div className="h-6">
+          <h2 className="text-base font-semibold mb-4 text-slate-800">Préstamos y Devoluciones</h2>
+          <div className="h-72">
             <canvas id="barChart"></canvas>
           </div>
         </Card>
