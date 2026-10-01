@@ -60,14 +60,14 @@ const AuthenticatedApp: React.FC<{ isAdmin: boolean }> = ({  }) => {
   const { sidebarWidth } = useSidebar();
   
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Sidebar />
       
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="min-h-screen">
         <Header />
         
         <main 
-          className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 transition-all duration-300"
+          className="min-h-screen overflow-x-hidden bg-slate-50 px-4 pb-8 pt-20 transition-all duration-300 sm:px-6 lg:px-8"
           style={{ 
             marginLeft: sidebarWidth === 'collapsed' ? '70px' : '250px'
           }}

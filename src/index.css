@@ -152,3 +152,92 @@ input:-webkit-autofill:active {
 .sidebar-gradient {
   background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
 }
+
+/* Modern UI system */
+:root {
+  --app-primary: #f97316;
+  --app-primary-dark: #ea580c;
+  --app-bg: #f8fafc;
+  --app-surface: #ffffff;
+  --app-border: #e2e8f0;
+  --app-text: #0f172a;
+  --app-muted: #64748b;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--app-bg); }
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.06), transparent 28rem),
+    var(--app-bg);
+  color: var(--app-text);
+}
+
+::selection { background: rgba(249, 115, 22, 0.18); }
+
+.app-surface {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.p-card {
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.p-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+.p-datatable {
+  border-radius: 0.85rem;
+  overflow: hidden;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  border-color: #eef2f7;
+}
+
+.p-button { border-radius: 0.75rem; }
+
+.auth-shell {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.16), transparent 24rem),
+    radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.12), transparent 24rem),
+    #f8fafc;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
